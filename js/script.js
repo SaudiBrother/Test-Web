@@ -117,6 +117,20 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
+// Fungsi untuk mengubah **tebal** dan *miring* setelah teks di‑escape
+function formatInlineMarkdown(text) {
+    // Escape dulu agar aman dari XSS
+    text = escapeHtml(text);
+    // Bold
+    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Italic (hati‑hati jangan sampai memakan bold)
+    text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    // Kembalikan juga underline jika ada (walaupun jarang)
+    text = text.replace(/__(.*?)__/g, '<strong>$1</strong>');
+    text = text.replace(/_(.*?)_/g, '<em>$1</em>');
+    return text;
+}
+
 // ======================== PAGE RENDERING ========================
 
 function renderPendahuluan() {
@@ -170,7 +184,7 @@ function renderTableWidget(item) {
     return `<div class="tab-widget">${tabHeadersHtml}${panesHtml}</div>`;
 }
 
-// ======================== PERBAIKAN FINAL renderBab ========================
+// ======================== renderBab DENGAN DUKUNGAN FORMAT & DAFTAR ========================
 function renderBab(babId) {
     let text = babData[babId];
     if (!text) return '<div class="content-card"><p>Konten bab tidak tersedia.</p></div>';
@@ -205,28 +219,28 @@ function renderBab(babId) {
         for (const line of paragraphLines) {
             let trimmedLine = line.trim();
 
-            // Normalisasi berbagai simbol bullet menjadi "- "
+            // Normalisasi simbol bullet aneh (mis. ) menjadi “- ”
             trimmedLine = trimmedLine.replace(/^[•●○]\s*/, '- ');
 
-            // Deteksi daftar tidak berurutan
+            // Deteksi daftar tak‑berurutan
             if (/^[-*]\s/.test(trimmedLine)) {
                 if (listType !== 'ul') {
                     flushList();
                     listType = 'ul';
                 }
                 const itemText = trimmedLine.replace(/^[-*]\s/, '');
-                listItems.push(`<li>${escapeHtml(itemText)}</li>`);
+                listItems.push(`<li>${formatInlineMarkdown(itemText)}</li>`);
             }
-            // Deteksi daftar berurutan (1. 2. dst.)
+            // Deteksi daftar berurutan (1. 2. ...)
             else if (/^\d+\.\s/.test(trimmedLine)) {
                 if (listType !== 'ol') {
                     flushList();
                     listType = 'ol';
                 }
                 const itemText = trimmedLine.replace(/^\d+\.\s/, '');
-                listItems.push(`<li>${escapeHtml(itemText)}</li>`);
+                listItems.push(`<li>${formatInlineMarkdown(itemText)}</li>`);
             }
-            // Baris yang hanya berisi "---" menjadi <hr>
+            // Baris yang hanya “---” → garis pemisah
             else if (trimmedLine === '---') {
                 flushList();
                 htmlSegment += '<hr style="border: 1px solid var(--border-light); margin: 1.5rem 0;">';
@@ -234,13 +248,10 @@ function renderBab(babId) {
             // Paragraf biasa
             else {
                 flushList();
-                // Ganti "---" menjadi em dash di dalam teks
+                // Ganti semua “---” dengan tanda pisah (—)
                 let p = trimmedLine.replace(/---/g, '—');
-                // Terapkan bold/italic markdown
-                p = p.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                p = p.replace(/__(.*?)__/g, '<strong>$1</strong>');
-                p = p.replace(/\*(.*?)\*/g, '<em>$1</em>');
-                p = p.replace(/_(.*?)_/g, '<em>$1</em>');
+                // Terapkan format inline (bold, italic) setelah bersih dari daftar
+                p = formatInlineMarkdown(p);
                 htmlSegment += `<p>${p}</p>`;
             }
         }
@@ -273,7 +284,7 @@ function renderBab(babId) {
             continue;
         }
 
-        // Mode tabel
+        // Dalam mode tabel
         if (inTable) {
             if (trimmedLine === '') {
                 let nextNonEmpty = '';
