@@ -170,7 +170,7 @@ function renderTableWidget(item) {
     return `<div class="tab-widget">${tabHeadersHtml}${panesHtml}</div>`;
 }
 
-// ======================== PERBAIKAN TOTAL: renderBab DENGAN DUKUNGAN DAFTAR (UL/OL) ========================
+// ======================== PERBAIKAN FINAL renderBab ========================
 function renderBab(babId) {
     let text = babData[babId];
     if (!text) return '<div class="content-card"><p>Konten bab tidak tersedia.</p></div>';
@@ -182,14 +182,13 @@ function renderBab(babId) {
     let inTable = false;
     let tableJustEnded = false;
 
-    // Fungsi untuk memproses buffer paragraf dan mengubahnya menjadi HTML
     function flushBuffer() {
         if (!buffer.trim()) return;
 
         const paragraphLines = buffer.trim().split('\n');
         let htmlSegment = '';
         let listItems = [];
-        let listType = null; // 'ul' atau 'ol'
+        let listType = null;
 
         const flushList = () => {
             if (listItems.length > 0) {
@@ -204,8 +203,12 @@ function renderBab(babId) {
         };
 
         for (const line of paragraphLines) {
-            const trimmedLine = line.trim();
-            // Deteksi item daftar tidak berurutan (- atau *)
+            let trimmedLine = line.trim();
+
+            // Normalisasi berbagai simbol bullet menjadi "- "
+            trimmedLine = trimmedLine.replace(/^[•●○]\s*/, '- ');
+
+            // Deteksi daftar tidak berurutan
             if (/^[-*]\s/.test(trimmedLine)) {
                 if (listType !== 'ul') {
                     flushList();
@@ -214,7 +217,7 @@ function renderBab(babId) {
                 const itemText = trimmedLine.replace(/^[-*]\s/, '');
                 listItems.push(`<li>${escapeHtml(itemText)}</li>`);
             }
-            // Deteksi item daftar berurutan (1. 2. dst.)
+            // Deteksi daftar berurutan (1. 2. dst.)
             else if (/^\d+\.\s/.test(trimmedLine)) {
                 if (listType !== 'ol') {
                     flushList();
@@ -223,22 +226,25 @@ function renderBab(babId) {
                 const itemText = trimmedLine.replace(/^\d+\.\s/, '');
                 listItems.push(`<li>${escapeHtml(itemText)}</li>`);
             }
-            // Teks biasa, tangani juga simbol pemisah "---" menjadi <hr> jika sendirian di baris
+            // Baris yang hanya berisi "---" menjadi <hr>
             else if (trimmedLine === '---') {
                 flushList();
                 htmlSegment += '<hr style="border: 1px solid var(--border-light); margin: 1.5rem 0;">';
             }
+            // Paragraf biasa
             else {
                 flushList();
-                let p = trimmedLine
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/__(.*?)__/g, '<strong>$1</strong>')
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                    .replace(/_(.*?)_/g, '<em>$1</em>');
+                // Ganti "---" menjadi em dash di dalam teks
+                let p = trimmedLine.replace(/---/g, '—');
+                // Terapkan bold/italic markdown
+                p = p.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                p = p.replace(/__(.*?)__/g, '<strong>$1</strong>');
+                p = p.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                p = p.replace(/_(.*?)_/g, '<em>$1</em>');
                 htmlSegment += `<p>${p}</p>`;
             }
         }
-        flushList(); // Kosongkan item daftar yang tersisa
+        flushList(); // Kosongkan sisa
         htmlAccumulator += htmlSegment;
         buffer = '';
     }
@@ -259,7 +265,7 @@ function renderBab(babId) {
             continue;
         }
 
-        // Deteksi marker #tab
+        // Deteksi #tab
         if (!inTable && trimmedLine === '#tab') {
             flushBuffer();
             inTable = true;
@@ -267,7 +273,7 @@ function renderBab(babId) {
             continue;
         }
 
-        // Dalam mode tabel
+        // Mode tabel
         if (inTable) {
             if (trimmedLine === '') {
                 let nextNonEmpty = '';
