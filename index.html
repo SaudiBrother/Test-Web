@@ -14,29 +14,48 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><circle cx='90' cy='90' r='80' fill='%234DD0E1'/><path d='M70 50 L130 80 L70 110 Z' fill='white'/></svg>">
 </head>
 <body>
-    <!-- Ambient background with particles -->
+    <!-- Ambient background -->
     <div class="bg-particles"></div>
 
-    <!-- Skip to main content -->
     <a href="#player" class="skip-link">⬇️ Lewati ke player</a>
 
-    <!-- Top Controls -->
+    <!-- Top Controls: single unified panel toggle -->
     <div class="top-controls" role="toolbar" aria-label="Kontrol utama">
-        <button class="icon-btn theme-toggle" aria-label="Ganti tema (Light/Dark)" title="Ganti Tema">
-            <svg class="theme-svg" viewBox="0 0 24 24" aria-hidden="true">
-                <!-- Sun icon (light) -->
-                <path class="sun" d="M12 3a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1zm0 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7-11a1 1 0 0 1 0 1.4l-.7.7a1 1 0 1 1-1.4-1.4l.7-.7A1 1 0 0 1 19 7zM5 17a1 1 0 0 1 0-1.4l.7-.7a1 1 0 1 1 1.4 1.4l-.7.7A1 1 0 0 1 5 17zm15 0a1 1 0 0 1-1.4 0l-.7-.7a1 1 0 1 1 1.4-1.4l.7.7A1 1 0 0 1 20 17zM5 7a1 1 0 0 1 1.4 0l.7.7A1 1 0 1 1 5.7 9.1L5 8.4A1 1 0 0 1 5 7zm7-3a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V5a1 1 0 0 1 1-1zm0 15a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1zM1 12a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2H2a1 1 0 0 1-1-1zm18 0a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2h-1a1 1 0 0 1-1-1z" fill="currentColor"/>
-                <!-- Moon icon (dark) -->
-                <path class="moon" d="M20.4 14.6a8.5 8.5 0 0 1-12.7-9.3 7 7 0 1 0 12.7 9.3z" fill="currentColor"/>
+        <button class="icon-btn panel-toggle" id="panelToggleBtn" aria-label="Buka panel kontrol" title="Panel Kontrol">
+            <svg class="panel-arrow" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9" />
             </svg>
         </button>
-        <button class="icon-btn menu-btn" id="menuBtn" aria-label="Buka daftar lagu" title="Menu Lagu (M)">
-            <svg class="menu-svg" viewBox="0 0 24 24" aria-hidden="true">
-                <rect class="line top" x="3" y="4" width="18" height="2" rx="1" />
-                <rect class="line middle" x="3" y="11" width="18" height="2" rx="1" />
-                <rect class="line bottom" x="3" y="18" width="18" height="2" rx="1" />
-            </svg>
-        </button>
+
+        <!-- Dropdown Panel -->
+        <div class="control-panel" id="controlPanel" aria-hidden="true">
+            <div class="panel-section themes">
+                <span class="panel-label">Tema</span>
+                <div class="theme-options">
+                    <button class="theme-option active" data-theme="dark" aria-label="Tema Gelap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.39 5.39 0 0 1-6.4-6.4A8.99 8.99 0 0 0 12 3z"/></svg>
+                        Gelap
+                    </button>
+                    <button class="theme-option" data-theme="light" aria-label="Tema Terang">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                        Terang
+                    </button>
+                    <button class="theme-option" data-theme="blue" aria-label="Tema Biru Animasi">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+                        Biru
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-section action">
+                <button class="panel-add-btn" id="addSongPanelBtn" aria-label="Tambah lagu baru" title="Tambah Lagu">
+                    <svg class="add-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                </button>
+                <span class="panel-label">Tambah Lagu</span>
+            </div>
+        </div>
     </div>
 
     <!-- Sidebar Playlist -->
@@ -49,32 +68,23 @@
         <div id="playlistContainer" role="region" aria-label="Playlist songs">
             <p class="empty-text">Belum ada lagu</p>
         </div>
-        <button class="btn-add-song" id="addSongBtn" aria-label="Tambah lagu baru">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-            Tambah Lagu
-        </button>
     </aside>
 
     <!-- Main App Container -->
     <main class="app-main" id="player" role="main">
-        <!-- Hero Section -->
         <div class="hero-center">
             <h1 class="breathing-title">Lrc Music Player</h1>
             <p class="hero-sub">Full Offline & Full Kostumisasi</p>
         </div>
 
-        <!-- Player Card -->
         <div class="content-card player-card" role="region" aria-label="Pemutar musik">
-            <!-- Current Song Display -->
             <div class="now-playing" id="nowPlaying" aria-live="polite">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                 <span>Pilih atau tambah lagu</span>
             </div>
 
-            <!-- Hidden Audio Element -->
             <audio id="audio" preload="auto" crossorigin="anonymous"></audio>
 
-            <!-- Progress Bar -->
             <div class="progress-container" role="progressbar" aria-label="Progres lagu">
                 <span id="currentTime" class="time">0:00</span>
                 <div class="progress-bar" id="progressBar">
@@ -84,12 +94,9 @@
                 <span id="duration" class="time">0:00</span>
             </div>
 
-            <!-- Player Controls -->
             <div class="player-controls" role="group" aria-label="Kontrol pemutar">
                 <button class="control-btn" id="prevBtn" aria-label="Lagu sebelumnya (←)" title="Lagu Sebelumnya">
-                    <svg viewBox="0 0 24 24" class="btn-icon">
-                        <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" fill="currentColor"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24" class="btn-icon"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" fill="currentColor"/></svg>
                 </button>
                 <button class="control-btn play-btn" id="playBtn" aria-label="Putar/Jeda (Spasi)" title="Putar/Jeda">
                     <svg viewBox="0 0 24 24" class="btn-icon play-icon">
@@ -98,13 +105,10 @@
                     </svg>
                 </button>
                 <button class="control-btn" id="nextBtn" aria-label="Lagu berikutnya (→)" title="Lagu Berikutnya">
-                    <svg viewBox="0 0 24 24" class="btn-icon">
-                        <path d="M6 18l8.5-6L6 6v12zm10-12h2v12h-2V6z" fill="currentColor"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24" class="btn-icon"><path d="M6 18l8.5-6L6 6v12zm10-12h2v12h-2V6z" fill="currentColor"/></svg>
                 </button>
             </div>
 
-            <!-- Volume Control -->
             <div class="volume-control" role="group" aria-label="Kontrol volume">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vol-icon">
                     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
@@ -115,13 +119,12 @@
             </div>
         </div>
 
-        <!-- Lyrics Display Grid -->
         <div class="lyrics-grid" id="lyricsGrid" role="region" aria-label="Lirik lagu">
             <p class="empty-text" style="grid-column:1/-1;">📝 Lirik akan muncul di sini</p>
         </div>
     </main>
 
-    <!-- Modal for Adding New Song -->
+    <!-- Modal Tambah Lagu -->
     <div class="modal" id="addModal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
         <div class="modal-content">
             <h2 id="modalTitle">
@@ -129,30 +132,20 @@
                 Tambah Lagu Baru
             </h2>
             
-            <!-- Audio File Input -->
             <div class="form-group">
                 <label for="audioFileInput">🎵 File Audio</label>
                 <input type="file" id="audioFileInput" accept="audio/*" required aria-required="true">
             </div>
 
-            <!-- Lyric Columns Container -->
             <div id="lyricInputsContainer" role="group" aria-label="Kolom lirik"></div>
 
-            <!-- Form Actions -->
             <div class="form-actions">
-                <button type="button" id="addLyricColumnBtn" class="btn-secondary" aria-label="Tambah kolom lirik">
-                    + Kolom Lirik
-                </button>
-                <button type="button" id="removeLyricColumnBtn" class="btn-secondary" aria-label="Hapus kolom lirik">
-                    − Kolom
-                </button>
+                <button type="button" id="addLyricColumnBtn" class="btn-secondary" aria-label="Tambah kolom lirik">+ Kolom Lirik</button>
+                <button type="button" id="removeLyricColumnBtn" class="btn-secondary" aria-label="Hapus kolom lirik">− Kolom</button>
             </div>
 
-            <!-- Modal Footer -->
             <div class="modal-footer">
-                <button type="button" id="cancelAddBtn" class="btn-secondary" aria-label="Batalkan">
-                    Batal
-                </button>
+                <button type="button" id="cancelAddBtn" class="btn-secondary" aria-label="Batalkan">Batal</button>
                 <button type="button" id="saveSongBtn" class="btn-primary" aria-label="Simpan lagu">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                     Simpan Lagu
@@ -161,16 +154,12 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="app-footer" role="contentinfo">
         <div class="footer-content">
             <span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1h18v1z"/><path d="M12 9v3m0 0v3m0-3h3m-3 0H9"/></svg>
                 Lrc Music Player — Full Offline & Full Kostumisasi
             </span>
-            <div class="footer-links">
-                <span>📂 Pilih file dari perangkat Anda</span>
-            </div>
         </div>
     </footer>
 
