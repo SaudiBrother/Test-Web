@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2C6E49">
+    <meta name="description" content="🎵 Lirik Player - Aplikasi pemutar musik offline dengan lirik multi-bahasa yang responsif dan modern">
+    <meta name="keywords" content="lyrics, music player, offline, multilingual">
+    
+    <title>🎵 Lirik Player Offline</title>
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%232C6E49' width='180' height='180'/><text x='50%' y='50%' font-size='100' text-anchor='middle' dominant-baseline='central'>🎵</text></svg>">
+</head>
+<body>
+    <!-- Ambient background with particles -->
+    <div class="bg-particles"></div>
+
+    <!-- Accessibility: Skip to main content -->
+    <a href="#player" class="skip-link">⬇️ Lewati ke player</a>
+
+    <!-- Top Controls (Theme & Menu) -->
+    <div class="top-controls" role="toolbar" aria-label="Kontrol utama">
+        <button class="icon-btn theme-toggle" aria-label="Ganti tema (Light/Dark)" title="Ganti Tema">
+            <span class="theme-icon">🌙</span>
+        </button>
+        <button class="icon-btn menu-btn" id="menuBtn" aria-label="Buka daftar lagu" title="Menu Lagu (M)">
+            <span class="menu-icon-line">
+                <span></span>
+                <span></span>
+                <span></span>
+            </span>
+        </button>
+    </div>
+
+    <!-- Sidebar Playlist -->
+    <div class="sidebar-overlay" id="sidebarOverlay" role="presentation"></div>
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Daftar lagu">
+        <h2 class="sidebar-header">Daftar Lagu</h2>
+        <div id="playlistContainer" role="region" aria-label="Playlist songs">
+            <p class="empty-text">Belum ada lagu</p>
+        </div>
+        <button class="btn-add-song" id="addSongBtn" aria-label="Tambah lagu baru">
+            ➕ Tambah Lagu
+        </button>
+    </aside>
+
+    <!-- Main App Container -->
+    <main class="app-main" id="player" role="main">
+        <!-- Hero Section -->
+        <div class="hero-center">
+            <h1 class="breathing-title">🎶 Lirik Player</h1>
+            <p class="hero-sub">Musik & lirik multi‑bahasa, sepenuhnya offline</p>
+        </div>
+
+        <!-- Player Card -->
+        <div class="content-card player-card" role="region" aria-label="Pemutar musik">
+            <!-- Current Song Display -->
+            <div class="now-playing" id="nowPlaying" aria-live="polite">
+                🎤 Pilih atau tambah lagu
+            </div>
+
+            <!-- Hidden Audio Element -->
+            <audio id="audio" preload="auto" crossorigin="anonymous"></audio>
+
+            <!-- Progress Bar -->
+            <div class="progress-container" role="progressbar" aria-label="Progres lagu" aria-valuemin="0" aria-valuemax="100">
+                <span id="currentTime" class="time" aria-label="Waktu sekarang">0:00</span>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                    <input type="range" id="seekSlider" class="seek-slider" min="0" max="100" step="0.1" value="0" aria-label="Seek bar">
+                </div>
+                <span id="duration" class="time" aria-label="Durasi total">0:00</span>
+            </div>
+
+            <!-- Player Controls -->
+            <div class="player-controls" role="group" aria-label="Kontrol pemutar">
+                <button class="control-btn" id="prevBtn" aria-label="Lagu sebelumnya (←)" title="Lagu Sebelumnya">⏮️</button>
+                <button class="control-btn play-btn" id="playBtn" aria-label="Putar/Jeda (Spasi)" title="Putar/Jeda">▶️</button>
+                <button class="control-btn" id="nextBtn" aria-label="Lagu berikutnya (→)" title="Lagu Berikutnya">⏭️</button>
+            </div>
+
+            <!-- Volume Control -->
+            <div class="volume-control" role="group" aria-label="Kontrol volume">
+                <span aria-hidden="true">🔊</span>
+                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.05" value="0.7" aria-label="Volume">
+            </div>
+        </div>
+
+        <!-- Lyrics Display Grid -->
+        <div class="lyrics-grid" id="lyricsGrid" role="region" aria-label="Lirik lagu">
+            <p class="empty-text" style="grid-column:1/-1;">📝 Lirik akan muncul di sini</p>
+        </div>
+    </main>
+
+    <!-- Modal for Adding New Song -->
+    <div class="modal" id="addModal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-content">
+            <h2 id="modalTitle">➕ Tambah Lagu Baru</h2>
+            
+            <!-- Audio File Input -->
+            <div class="form-group">
+                <label for="audioFileInput">🎵 File Audio</label>
+                <input type="file" id="audioFileInput" accept="audio/*" required aria-required="true">
+            </div>
+
+            <!-- Lyric Columns Container -->
+            <div id="lyricInputsContainer" role="group" aria-label="Kolom lirik">
+                <!-- Dynamically generated lyric columns -->
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="button" id="addLyricColumnBtn" class="btn-secondary" aria-label="Tambah kolom lirik">
+                    + Kolom Lirik
+                </button>
+                <button type="button" id="removeLyricColumnBtn" class="btn-secondary" aria-label="Hapus kolom lirik">
+                    − Kolom
+                </button>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" id="cancelAddBtn" class="btn-secondary" aria-label="Batalkan">
+                    Batal
+                </button>
+                <button type="button" id="saveSongBtn" class="btn-primary" aria-label="Simpan lagu">
+                    💾 Simpan Lagu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer" role="contentinfo">
+        <div class="footer-content">
+            <span>🎧 Lirik Player — Sepenuhnya offline</span>
+            <div class="footer-links">
+                <span>📂 Pilih file dari perangkat Anda</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Main JavaScript -->
+    <script src="js/script.js" defer></script>
+</body>
+</html>
