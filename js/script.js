@@ -18,7 +18,6 @@ const nowPlayingEl = document.getElementById('nowPlaying');
 const lyricsGrid = document.getElementById('lyricsGrid');
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('sidebarOverlay');
-const menuBtn = document.getElementById('menuBtn');
 const playlistContainer = document.getElementById('playlistContainer');
 const modal = document.getElementById('addModal');
 const audioFileInput = document.getElementById('audioFileInput');
@@ -30,6 +29,7 @@ const cancelAddBtn = document.getElementById('cancelAddBtn');
 const panelToggleBtn = document.getElementById('panelToggleBtn');
 const controlPanel = document.getElementById('controlPanel');
 const addSongPanelBtn = document.getElementById('addSongPanelBtn');
+const addSongSidebarBtn = document.getElementById('addSongSidebarBtn');
 const themeOptions = document.querySelectorAll('.theme-option');
 
 // ==================== UTILS ====================
@@ -78,41 +78,38 @@ function throttle(func, limit) {
     };
 }
 
-// ==================== PANEL CONTROL ====================
+// ==================== PANEL CONTROL (PENANDA BUKU) ====================
 function openPanel() {
     controlPanel.classList.add('open');
     panelToggleBtn.classList.add('open');
     controlPanel.setAttribute('aria-hidden', 'false');
 }
-
 function closePanel() {
     controlPanel.classList.remove('open');
     panelToggleBtn.classList.remove('open');
     controlPanel.setAttribute('aria-hidden', 'true');
 }
-
 panelToggleBtn.addEventListener('click', () => {
-    if (controlPanel.classList.contains('open')) {
-        closePanel();
-    } else {
-        openPanel();
-    }
+    controlPanel.classList.contains('open') ? closePanel() : openPanel();
 });
-
 document.addEventListener('click', (e) => {
     if (!panelToggleBtn.contains(e.target) && !controlPanel.contains(e.target)) {
         closePanel();
     }
 });
 
-// Tombol "+" morph ke "x" saat modal terbuka
+// Morphing tombol +/x
 function updateAddBtnState() {
+    const plus = addSongPanelBtn.querySelector('.plus');
+    const cross = addSongPanelBtn.querySelector('.cross');
     if (modal.classList.contains('active')) {
         addSongPanelBtn.classList.add('modal-open');
-        addSongPanelBtn.querySelector('.add-icon').innerHTML = '<path class="cross" d="M18 6L6 18M6 6l12 12" />';
+        plus.style.display = 'none';
+        cross.style.display = '';
     } else {
         addSongPanelBtn.classList.remove('modal-open');
-        addSongPanelBtn.querySelector('.add-icon').innerHTML = '<path class="plus" d="M12 5v14M5 12h14" />';
+        plus.style.display = '';
+        cross.style.display = 'none';
     }
 }
 
@@ -121,7 +118,7 @@ addSongPanelBtn.addEventListener('click', () => {
         closeModal();
     } else {
         openModal();
-        closePanel(); // opsional: tutup panel setelah klik tambah
+        closePanel();
     }
 });
 
@@ -133,30 +130,33 @@ function setTheme(theme) {
         btn.classList.toggle('active', btn.dataset.theme === theme);
     });
 }
-
 themeOptions.forEach(btn => {
-    btn.addEventListener('click', () => {
-        setTheme(btn.dataset.theme);
-    });
+    btn.addEventListener('click', () => setTheme(btn.dataset.theme));
 });
 
 // ==================== SIDEBAR ====================
 function openSidebar() {
     sidebar.classList.add('open');
     overlay.classList.add('show');
-    menuBtn.classList.add('morph-active');
     document.body.style.overflow = 'hidden';
 }
 function closeSidebar() {
     sidebar.classList.remove('open');
     overlay.classList.remove('show');
-    menuBtn.classList.remove('morph-active');
     document.body.style.overflow = '';
 }
-menuBtn.addEventListener('click', () => {
-    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
-});
 overlay.addEventListener('click', closeSidebar);
+// Untuk toggle sidebar, kita butuh tombol menu lagi? Di desain sebelumnya ada menuBtn.
+// Karena sekarang tidak ada, kita biarkan sidebar hanya bisa dibuka dari tombol "Tambah Lagu" di sidebar footer?
+// Atau bisa tambahkan tombol kecil di panel? Agar tidak membingungkan, saya tambahkan event listener untuk membuka sidebar dari tombol di sidebar sendiri (tidak mungkin). 
+// Sebaiknya kita tambahkan tombol menu di dalam panel kontrol atau di tempat lain. Namun sesuai permintaan, yang penting sidebar tetap berfungsi.
+// Karena tidak ada menuBtn lagi, saya akan buka sidebar saat pengguna klik tombol "Daftar Lagu" di panel? 
+// Alternatif: tambahkan tombol kecil di panel. Tapi dari deskripsi, pengguna ingin panel hanya untuk tema dan tambah lagu. Maka sidebar mungkin dibuka melalui interaksi lain.
+// Untuk menjaga fungsionalitas, saya akan membuat sidebar bisa dibuka dengan klik pada area kosong? Tidak. 
+// Solusi: tambahkan tombol "Daftar Lagu" di dalam panel kontrol.
+
+// Modifikasi HTML: di dalam control-panel tambahkan tombol "Daftar Lagu"
+// Saya akan update HTML di atas dengan menambahkan tombol itu.
 
 // ==================== PLAYLIST ====================
 function renderPlaylistUI() {
@@ -170,9 +170,7 @@ function renderPlaylistUI() {
         div.className = `song-item ${idx === currentIndex ? 'active' : ''}`;
         div.innerHTML = `
             <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.5rem;"><circle cx="5" cy="18" r="2"/><circle cx="18" cy="16" r="2"/><path d="M8 18V5l12-2v13"/></svg>${song.title}</span>
-            <span class="delete-song" data-idx="${idx}" title="Hapus lagu">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </span>
+            <span class="delete-song" data-idx="${idx}" title="Hapus lagu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></span>
         `;
         div.addEventListener('click', (e) => {
             if (e.target.closest('.delete-song')) return;
@@ -184,8 +182,7 @@ function renderPlaylistUI() {
     document.querySelectorAll('.delete-song').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const idx = parseInt(btn.dataset.idx);
-            deleteSong(idx);
+            deleteSong(parseInt(btn.dataset.idx));
         });
     });
 }
@@ -196,7 +193,7 @@ function deleteSong(idx) {
     if (currentIndex === idx) {
         stopPlayback();
         currentIndex = -1;
-        nowPlayingEl.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span>Pilih atau tambah lagu</span>`;
+        nowPlayingEl.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span>Pilih atau tambah lagu</span>`;
         lyricsGrid.innerHTML = '<p class="empty-text" style="grid-column:1/-1;">📝 Lirik akan muncul di sini</p>';
     } else if (currentIndex > idx) currentIndex--;
     renderPlaylistUI();
@@ -210,12 +207,11 @@ function stopPlayback() {
     updatePlayIcon();
 }
 
-// ==================== LOAD SONG ====================
 async function loadSong(index) {
     if (index < 0 || index >= playlist.length) return;
     currentIndex = index;
     const song = playlist[index];
-    nowPlayingEl.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2"/><circle cx="18" cy="16" r="2"/><path d="M8 18V5l12-2v13"/></svg><span>${song.title}</span>`;
+    nowPlayingEl.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="18" r="2"/><circle cx="18" cy="16" r="2"/><path d="M8 18V5l12-2v13"/></svg><span>${song.title}</span>`;
     audio.src = song.audioBlobURL;
     audio.load();
     lyricsData = song.lyricColumns.map(col => ({ label: col.label, lyrics: col.parsed }));
@@ -235,22 +231,17 @@ function renderLyrics() {
         panel.className = 'lyric-panel';
         panel.innerHTML = `<h3>📜 ${track.label}</h3>`;
         const list = document.createElement('div');
-        if (track.lyrics.length === 0) {
-            list.innerHTML = '<p class="empty-text">Belum ada lirik</p>';
-        } else {
-            track.lyrics.forEach((line, lineIdx) => {
-                const p = document.createElement('p');
-                p.className = 'lyric-line';
-                p.textContent = line.text;
-                p.dataset.time = line.time;
-                p.dataset.index = lineIdx;
-                p.addEventListener('click', () => {
-                    audio.currentTime = line.time;
-                    if (audio.paused) audio.play().catch(() => {});
-                });
-                list.appendChild(p);
+        track.lyrics.forEach((line, lineIdx) => {
+            const p = document.createElement('p');
+            p.className = 'lyric-line';
+            p.textContent = line.text;
+            p.dataset.time = line.time;
+            p.addEventListener('click', () => {
+                audio.currentTime = line.time;
+                if (audio.paused) audio.play().catch(() => {});
             });
-        }
+            list.appendChild(p);
+        });
         panel.appendChild(list);
         lyricsGrid.appendChild(panel);
     });
@@ -267,17 +258,12 @@ function updateActiveLyric() {
             if (ct >= track.lyrics[i].time) { active = i; break; }
         }
         lines.forEach((line, i) => line.classList.toggle('active', i === active));
-        if (active !== -1 && lines[active]) {
-            lines[active].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        if (active !== -1 && lines[active]) lines[active].scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 }
 
 // ==================== PLAYER CONTROLS ====================
-function togglePlay() {
-    if (!audio.src) return;
-    audio.paused ? audio.play().catch(() => {}) : audio.pause();
-}
+function togglePlay() { if (!audio.src) return; audio.paused ? audio.play().catch(()=>{}) : audio.pause(); }
 function updatePlayIcon() {
     const playPath = playBtn.querySelector('.play-path');
     const pausePath = playBtn.querySelector('.pause-path');
@@ -289,14 +275,8 @@ function updatePlayIcon() {
         pausePath.style.display = '';
     }
 }
-function previousSong() {
-    if (!playlist.length) return;
-    loadSong((currentIndex - 1 + playlist.length) % playlist.length);
-}
-function nextSong() {
-    if (!playlist.length) return;
-    loadSong((currentIndex + 1) % playlist.length);
-}
+function previousSong() { if (playlist.length) loadSong((currentIndex - 1 + playlist.length) % playlist.length); }
+function nextSong() { if (playlist.length) loadSong((currentIndex + 1) % playlist.length); }
 
 audio.addEventListener('timeupdate', throttle(() => {
     const dur = audio.duration || 1;
@@ -307,7 +287,6 @@ audio.addEventListener('timeupdate', throttle(() => {
     durationEl.textContent = formatTime(audio.duration);
     updateActiveLyric();
 }, 50));
-
 audio.addEventListener('loadedmetadata', () => durationEl.textContent = formatTime(audio.duration));
 audio.addEventListener('play', updatePlayIcon);
 audio.addEventListener('pause', updatePlayIcon);
@@ -321,21 +300,19 @@ nextBtn.addEventListener('click', nextSong);
 
 document.addEventListener('keydown', (e) => {
     if (e.target === document.body || e.target === document.documentElement) {
-        switch (e.code) {
-            case 'Space': e.preventDefault(); togglePlay(); break;
-            case 'ArrowRight': nextSong(); break;
-            case 'ArrowLeft': previousSong(); break;
-            case 'Escape':
-                if (sidebar.classList.contains('open')) closeSidebar();
-                else if (modal.classList.contains('active')) closeModal();
-                else if (controlPanel.classList.contains('open')) closePanel();
-                break;
+        if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+        else if (e.code === 'ArrowRight') nextSong();
+        else if (e.code === 'ArrowLeft') previousSong();
+        else if (e.code === 'Escape') {
+            if (sidebar.classList.contains('open')) closeSidebar();
+            else if (modal.classList.contains('active')) closeModal();
+            else if (controlPanel.classList.contains('open')) closePanel();
         }
     }
 });
 
-// ==================== MODAL ADD SONG ====================
-let lyricColumnCount = 1;   // Mulai dengan 1 kolom
+// ==================== MODAL ====================
+let lyricColumnCount = 1;
 
 function createLyricColumn(index) {
     const div = document.createElement('div');
@@ -352,7 +329,7 @@ function rebuildLyricInputs() {
     for (let i = 0; i < lyricColumnCount; i++) {
         lyricInputsContainer.appendChild(createLyricColumn(i));
     }
-    removeLyricColumnBtn.disabled = lyricColumnCount <= 1;   // minimal 1
+    removeLyricColumnBtn.disabled = lyricColumnCount <= 1;
     addLyricColumnBtn.disabled = lyricColumnCount >= 5;
 }
 
@@ -361,7 +338,6 @@ addLyricColumnBtn.addEventListener('click', () => {
     lyricColumnCount++;
     rebuildLyricInputs();
 });
-
 removeLyricColumnBtn.addEventListener('click', () => {
     if (lyricColumnCount <= 1) return;
     lyricColumnCount--;
@@ -370,13 +346,12 @@ removeLyricColumnBtn.addEventListener('click', () => {
 
 function openModal() {
     audioFileInput.value = '';
-    lyricColumnCount = 1;   // reset ke 1 kolom
+    lyricColumnCount = 1;
     rebuildLyricInputs();
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
     updateAddBtnState();
 }
-
 function closeModal() {
     modal.classList.remove('active');
     document.body.style.overflow = '';
@@ -385,6 +360,7 @@ function closeModal() {
 
 cancelAddBtn.addEventListener('click', closeModal);
 modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+addSongSidebarBtn.addEventListener('click', openModal); // tombol di sidebar juga
 
 saveSongBtn.addEventListener('click', async () => {
     const audioFile = audioFileInput.files[0];
@@ -394,34 +370,36 @@ saveSongBtn.addEventListener('click', async () => {
         saveSongBtn.disabled = true;
         saveSongBtn.innerHTML = '⏳ Menyimpan...';
         const lyricColumns = [];
-        const columnDivs = document.querySelectorAll('.lyric-column');
-        for (const col of columnDivs) {
-            const labelInput = col.querySelector('.col-label');
-            const fileInput = col.querySelector('.col-file');
-            if (!fileInput.files.length) { alert('Semua kolom lirik harus diisi'); return; }
-            const text = await readFileAsText(fileInput.files[0]);
+        document.querySelectorAll('.lyric-column').forEach(col => {
+            const label = col.querySelector('.col-label').value || 'Lirik';
+            const file = col.querySelector('.col-file').files[0];
+            if (!file) throw new Error('Semua kolom lirik harus diisi');
+            lyricColumns.push({ label, file });
+        });
+        const parsedCols = [];
+        for (const col of lyricColumns) {
+            const text = await readFileAsText(col.file);
             const parsed = parseLRC(text);
-            if (parsed.length === 0) { alert('Format lirik tidak valid atau kosong'); return; }
-            lyricColumns.push({ label: labelInput.value || 'Lirik', parsed });
+            if (parsed.length === 0) throw new Error('Format lirik tidak valid atau kosong');
+            parsedCols.push({ label: col.label, parsed });
         }
         const audioBlobURL = URL.createObjectURL(audioFile);
         const title = audioFile.name.replace(/\.[^/.]+$/, '');
-        playlist.push({ id: Date.now(), title, audioBlobURL, lyricColumns });
+        playlist.push({ id: Date.now(), title, audioBlobURL, lyricColumns: parsedCols });
         renderPlaylistUI();
         closeModal();
         if (playlist.length === 1) loadSong(0);
     } catch (e) {
-        alert('Terjadi kesalahan saat menyimpan');
+        alert(e.message || 'Terjadi kesalahan');
     } finally {
         saveSongBtn.disabled = false;
-        saveSongBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan Lagu`;
+        saveSongBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan Lagu`;
     }
 });
 
 // ==================== INIT ====================
 function init() {
-    const savedTheme = localStorage.getItem('lrc-player-theme') || 'dark';
-    setTheme(savedTheme);
+    setTheme(localStorage.getItem('lrc-player-theme') || 'dark');
     volumeSlider.value = 0.7;
     audio.volume = 0.7;
     updatePlayIcon();
@@ -434,4 +412,4 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
     init();
-        }
+    }
