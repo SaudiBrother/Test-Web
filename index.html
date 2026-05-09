@@ -1,1 +1,117 @@
-<!DOCTYPE html><html lang="id"><head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Belajar Investasi - Paradigma Keuangan Baru</title>    <!-- Google Fonts dengan fallback lokal -->    <link rel="preconnect" href="https://fonts.googleapis.com">    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">    <link rel="stylesheet" href="css/style.css"></head><body>    <canvas id="bgCanvas" class="bg-canvas"></canvas>        <!-- Top Controls -->    <div class="top-controls">        <button id="themeToggle" class="icon-btn" title="Ganti tema"></button>        <button id="menuToggleBtn" class="icon-btn menu-btn" style="display:none;" title="Menu">            <div class="menu-icon-line">                <span></span><span></span><span></span>            </div>        </button>    </div>        <!-- Sidebar -->    <div id="sidebarOverlay" class="sidebar-overlay"></div>    <nav id="sidebar" class="sidebar">        <div class="sidebar-header"> Daftar Isi</div>        <ul id="chapterSidebarList"></ul>    </nav>        <!-- Main Content -->    <main class="app-main">        <!-- Halaman Home -->        <section id="homePage" class="page active">            <div class="hero-center">                <div class="hero-content">                    <h1 class="breathing-title" id="mainTitle">Belajar Investasi</h1>                    <p class="hero-sub" id="mainSubtitle"></p>                    <button id="startBtn" class="btn-start">Mulai Pelajari</button>                </div>            </div>        </section>                <!-- Content Pages -->        <section id="pendahuluan" class="page"></section>        <section id="bab1" class="page"></section>        <section id="bab2" class="page"></section>        <section id="bab3" class="page"></section>        <section id="bab4" class="page"></section>        <section id="bab5" class="page"></section>        <section id="bab6" class="page"></section>        <section id="bab7" class="page"></section>        <section id="kesimpulan" class="page"></section>    </main>        <script src="js/script.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🎵 Lirik Player Offline</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Ambient background -->
+    <div class="bg-particles"></div>
+
+    <a href="#player" class="skip-link">Lewati ke player</a>
+
+    <!-- Top Controls -->
+    <div class="top-controls">
+        <button class="icon-btn theme-toggle" aria-label="Ganti tema" title="Tema">
+            <span class="theme-icon">🌙</span>
+        </button>
+        <button class="icon-btn menu-btn" id="menuBtn" aria-label="Daftar lagu">
+            <span class="menu-icon-line">
+                <span></span><span></span><span></span>
+            </span>
+        </button>
+    </div>
+
+    <!-- Sidebar Playlist -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <h2 class="sidebar-header">📋 Daftar Lagu</h2>
+        <div id="playlistContainer">
+            <p class="empty-text">Belum ada lagu</p>
+        </div>
+        <button class="btn-add-song" id="addSongBtn">➕ Tambah Lagu</button>
+    </aside>
+
+    <!-- Main App -->
+    <main class="app-main" id="player">
+        <div class="hero-center">
+            <h1 class="breathing-title">🎶 Lirik Player</h1>
+            <p class="hero-sub">Musik & lirik multi‑bahasa, sepenuhnya offline</p>
+        </div>
+
+        <!-- Player Card -->
+        <div class="content-card player-card">
+            <div class="now-playing" id="nowPlaying">🎤 Pilih atau tambah lagu</div>
+
+            <!-- Audio element (hidden) -->
+            <audio id="audio" preload="auto"></audio>
+
+            <!-- Progress -->
+            <div class="progress-container">
+                <span id="currentTime" class="time">0:00</span>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                    <input type="range" id="seekSlider" class="seek-slider" min="0" max="100" step="0.1" value="0">
+                </div>
+                <span id="duration" class="time">0:00</span>
+            </div>
+
+            <!-- Controls -->
+            <div class="player-controls">
+                <button class="control-btn" id="prevBtn">⏮️</button>
+                <button class="control-btn play-btn" id="playBtn">▶️</button>
+                <button class="control-btn" id="nextBtn">⏭️</button>
+            </div>
+
+            <!-- Volume -->
+            <div class="volume-control">
+                <span>🔊</span>
+                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.05" value="0.7">
+            </div>
+        </div>
+
+        <!-- Lyrics Grid (akan diisi JS) -->
+        <div class="lyrics-grid" id="lyricsGrid">
+            <p class="empty-text" style="grid-column:1/-1;">Lirik akan muncul di sini</p>
+        </div>
+    </main>
+
+    <!-- Modal untuk menambah lagu -->
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <h2>➕ Tambah Lagu Baru</h2>
+            <div class="form-group">
+                <label>🎵 File Audio</label>
+                <input type="file" id="audioFileInput" accept="audio/*" required>
+            </div>
+
+            <div id="lyricInputsContainer">
+                <!-- Kolom lirik dinamis -->
+            </div>
+
+            <div class="form-actions">
+                <button type="button" id="addLyricColumnBtn" class="btn-secondary">+ Kolom Lirik</button>
+                <button type="button" id="removeLyricColumnBtn" class="btn-secondary" disabled>− Kolom</button>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" id="cancelAddBtn" class="btn-secondary">Batal</button>
+                <button type="button" id="saveSongBtn" class="btn-primary">Simpan Lagu</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="app-footer">
+        <div class="footer-content">
+            <span>🎧 Lirik Player — Sepenuhnya offline</span>
+            <div class="footer-links">
+                <span>📂 Pilih file dari perangkat</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+      </html>
