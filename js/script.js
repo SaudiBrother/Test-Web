@@ -1,663 +1,334 @@
-// ======================== GLOBAL VARIABLES ========================
-let mainData = null;
-let babData = null;
-let closingData = null;
-let chapters = [];
-let currentPageId = 'homePage';
-let darkMode = localStorage.getItem('theme') === 'dark';
+// ==================== STATE ====================
+let playlist = [];            // { id, title, audioBlobURL, lyricColumns: [{label, text, parsed[]}] }
+let currentIndex = -1;
+let lyricsData = [];          // aktif sesuai lagu terpilih
 
-// ======================== LOAD DATA FROM JSON ========================
-async function loadAllData() {
-    try {
-        const [mainRes, babRes, closingRes] = await Promise.all([
-            fetch('assets/teks/main.json'),
-            fetch('assets/teks/bab1_7.json'),
-            fetch('assets/teks/closing.json')
-        ]);
+const audio = document.getElementById('audio');
+const playBtn = document.getElementById('playBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const seekSlider = document.getElementById('seekSlider');
+const volumeSlider = document.getElementById('volumeSlider');
+const progressFill = document.getElementById('progressFill');
+const currentTimeEl = document.getElementById('currentTime');
+const durationEl = document.getElementById('duration');
+const nowPlayingEl = document.getElementById('nowPlaying');
+const lyricsGrid = document.getElementById('lyricsGrid');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebarOverlay');
+const menuBtn = document.getElementById('menuBtn');
+const playlistContainer = document.getElementById('playlistContainer');
+const addSongBtn = document.getElementById('addSongBtn');
+const modal = document.getElementById('addModal');
+const audioFileInput = document.getElementById('audioFileInput');
+const lyricInputsContainer = document.getElementById('lyricInputsContainer');
+const addLyricColumnBtn = document.getElementById('addLyricColumnBtn');
+const removeLyricColumnBtn = document.getElementById('removeLyricColumnBtn');
+const saveSongBtn = document.getElementById('saveSongBtn');
+const cancelAddBtn = document.getElementById('cancelAddBtn');
+const themeToggle = document.querySelector('.theme-toggle');
 
-        if (!mainRes.ok || !babRes.ok || !closingRes.ok) {
-            throw new Error('Gagal memuat salah satu file JSON');
-        }
-
-        mainData = await mainRes.json();
-        babData = await babRes.json();
-        closingData = await closingRes.json();
-
-        const mainSubtitle = document.getElementById('mainSubtitle');
-        if (mainSubtitle && mainData.main) {
-            mainSubtitle.textContent = mainData.main.subjudul;
-        }
-
-        chapters = [
-            { id: "pendahuluan", title: "📖 Pendahuluan" },
-            { id: "bab1", title: "⚔️ Bab 1: Manajemen Risiko" },
-            { id: "bab2", title: "📊 Bab 2: Alokasi Aset" },
-            { id: "bab3", title: "⏳ Bab 3: Kekuatan Waktu" },
-            { id: "bab4", title: "🧠 Bab 4: Psikologi Investor" },
-            { id: "bab5", title: "🏛️ Bab 5: Piramida Keuangan" },
-            { id: "bab6", title: "📐 Bab 6: Implementasi" },
-            { id: "bab7", title: "🔥 Bab 7: Konsistensi & Kedisiplinan" },
-            { id: "kesimpulan", title: "🎯 Kesimpulan" }
-        ];
-
-        initApp();
-    } catch (err) {
-        console.error('Gagal memuat data JSON:', err);
-        document.body.innerHTML = `
-            <div style="padding: 2rem; text-align: center; font-family: Inter, sans-serif;">
-                <h2 style="color: #E74C3C;">⚠️ Gagal memuat konten</h2>
-                <p>Pastikan file JSON tersedia di folder <strong>assets/teks/</strong></p>
-                <p style="font-size: 0.9rem; color: #7F8C8D;">Error: ${err.message}</p>
-            </div>
-        `;
-    }
+// ==================== UTILS ====================
+function formatTime(sec) {
+    if (isNaN(sec)) return '0:00';
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${s.toString().padStart(2,'0')}`;
 }
 
-// ======================== MARKDOWN TABLE TO TAB WIDGET PARSER ========================
-function parseMarkdownTableToTabWidget(tableText) {
-    const trimmed = tableText.trim();
-    if (!trimmed) return '';
-
-    const lines = trimmed.split(/\r?\n/).filter(l => l.trim() !== '');
-    if (lines.length < 2) {
-        return `<pre class="fallback-table">${escapeHtml(trimmed)}</pre>`;
-    }
-
-    function splitRow(row) {
-        let cleaned = row.trim();
-        if (cleaned.startsWith('|')) cleaned = cleaned.slice(1);
-        if (cleaned.endsWith('|')) cleaned = cleaned.slice(0, -1);
-        return cleaned.split('|').map(cell => cell.trim());
-    }
-
-    const headers = splitRow(lines[0]);
-    if (headers.length === 0) {
-        return `<pre class="fallback-table">${escapeHtml(trimmed)}</pre>`;
-    }
-
-    let dataStart = 1;
-    if (lines[1] && /^[\s\-|]+$/.test(lines[1]) && lines[1].includes('---')) {
-        dataStart = 2;
-    }
-
-    const rows = [];
-    for (let i = dataStart; i < lines.length; i++) {
-        const cells = splitRow(lines[i]);
-        if (cells.length > 0) rows.push(cells);
-    }
-
-    if (rows.length === 0) {
-        return `<pre class="fallback-table">${escapeHtml(trimmed)}</pre>`;
-    }
-
-    let tabHeadersHtml = `<div class="tab-headers">`;
-    let panesHtml = `<div class="tab-content">`;
-
-    headers.forEach((header, idx) => {
-        const activeClass = idx === 0 ? 'active' : '';
-        tabHeadersHtml += `<button class="tab-btn ${activeClass}" data-tab-idx="${idx}">${escapeHtml(header)}</button>`;
-
-        let paneContent = `<div class="tab-pane ${idx === 0 ? 'active-pane' : ''}" data-pane-idx="${idx}">`;
-        rows.forEach((row, rowIdx) => {
-            const val = (idx < row.length) ? row[idx] : '-';
-            paneContent += `<p><strong>${rowIdx + 1}.</strong> ${escapeHtml(val)}</p>`;
-        });
-        paneContent += `</div>`;
-        panesHtml += paneContent;
+function parseLRC(text) {
+    const lines = text.split('\n');
+    const res = [];
+    const regex = /\[(\d{1,2}):(\d{2})(?:\.(\d{2,3}))?\]/;
+    lines.forEach(line => {
+        const match = line.match(regex);
+        if (match) {
+            const min = parseInt(match[1]);
+            const sec = parseInt(match[2]);
+            const ms = match[3] ? parseInt(match[3].padEnd(3,'0')) : 0;
+            const total = min*60 + sec + ms/1000;
+            const txt = line.replace(regex, '').trim();
+            if (txt) res.push({ time: total, text: txt });
+        }
     });
-
-    tabHeadersHtml += `</div>`;
-    panesHtml += `</div>`;
-    return `<div class="tab-widget">${tabHeadersHtml}${panesHtml}</div>`;
+    return res.sort((a,b) => a.time - b.time);
 }
 
-function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-}
-
-// Fungsi untuk mengubah **tebal** dan *miring* setelah teks di‑escape
-function formatInlineMarkdown(text) {
-    // Escape dulu agar aman dari XSS
-    text = escapeHtml(text);
-    // Bold
-    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    // Italic (hati‑hati jangan sampai memakan bold)
-    text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    // Kembalikan juga underline jika ada (walaupun jarang)
-    text = text.replace(/__(.*?)__/g, '<strong>$1</strong>');
-    text = text.replace(/_(.*?)_/g, '<em>$1</em>');
-    return text;
-}
-
-// ======================== PAGE RENDERING ========================
-
-function renderPendahuluan() {
-    const data = mainData.pendahuluan;
-    if (!data) return '<div class="content-card"><p>Konten tidak tersedia.</p></div>';
-
-    let html = `<div class="content-card"><h1>${escapeHtml(data.judul)}</h1>`;
-    
-    for (const item of data.konten) {
-        if (item.jenis === 'paragraf') {
-            html += `<p>${escapeHtml(item.teks)}</p>`;
-        } else if (item.jenis === 'subjudul') {
-            html += `<h2>${escapeHtml(item.teks)}</h2>`;
-        } else if (item.jenis === 'contoh') {
-            html += `<p><em>💡 ${escapeHtml(item.teks)}</em></p>`;
-        } else if (item.jenis === 'tabel') {
-            html += renderTableWidget(item);
-        }
-    }
-    
-    html += `</div>`;
-    return html;
-}
-
-function renderTableWidget(item) {
-    const headers = item.header || [];
-    const rows = item.baris || [];
-
-    if (headers.length === 0 || rows.length === 0) {
-        return `<p><strong>${escapeHtml(item.judul || 'Tabel')}</strong> tidak dapat ditampilkan.</p>`;
-    }
-
-    let tabHeadersHtml = `<div class="tab-headers">`;
-    let panesHtml = `<div class="tab-content">`;
-
-    headers.forEach((h, idx) => {
-        const activeClass = idx === 0 ? 'active' : '';
-        tabHeadersHtml += `<button class="tab-btn ${activeClass}" data-tab-idx="${idx}">${escapeHtml(h)}</button>`;
-
-        let paneContent = `<div class="tab-pane ${idx === 0 ? 'active-pane' : ''}" data-pane-idx="${idx}">`;
-        rows.forEach((row, rowIdx) => {
-            const val = row[idx] || '-';
-            paneContent += `<p><strong>▪ ${rowIdx + 1}.</strong> ${escapeHtml(val)}</p>`;
-        });
-        paneContent += `</div>`;
-        panesHtml += paneContent;
-    });
-
-    tabHeadersHtml += `</div>`;
-    panesHtml += `</div>`;
-    return `<div class="tab-widget">${tabHeadersHtml}${panesHtml}</div>`;
-}
-
-// ======================== renderBab DENGAN DUKUNGAN FORMAT & DAFTAR ========================
-function renderBab(babId) {
-    let text = babData[babId];
-    if (!text) return '<div class="content-card"><p>Konten bab tidak tersedia.</p></div>';
-
-    const lines = text.split(/\r?\n/);
-    let htmlAccumulator = '';
-    let buffer = '';
-    let tableBuffer = '';
-    let inTable = false;
-    let tableJustEnded = false;
-
-    function flushBuffer() {
-        if (!buffer.trim()) return;
-
-        const paragraphLines = buffer.trim().split('\n');
-        let htmlSegment = '';
-        let listItems = [];
-        let listType = null;
-
-        const flushList = () => {
-            if (listItems.length > 0) {
-                if (listType === 'ul') {
-                    htmlSegment += '<ul>' + listItems.join('') + '</ul>';
-                } else if (listType === 'ol') {
-                    htmlSegment += '<ol>' + listItems.join('') + '</ol>';
-                }
-                listItems = [];
-                listType = null;
-            }
-        };
-
-        for (const line of paragraphLines) {
-            let trimmedLine = line.trim();
-
-            // Normalisasi simbol bullet aneh (mis. ) menjadi “- ”
-            trimmedLine = trimmedLine.replace(/^[•●○]\s*/, '- ');
-
-            // Deteksi daftar tak‑berurutan
-            if (/^[-*]\s/.test(trimmedLine)) {
-                if (listType !== 'ul') {
-                    flushList();
-                    listType = 'ul';
-                }
-                const itemText = trimmedLine.replace(/^[-*]\s/, '');
-                listItems.push(`<li>${formatInlineMarkdown(itemText)}</li>`);
-            }
-            // Deteksi daftar berurutan (1. 2. ...)
-            else if (/^\d+\.\s/.test(trimmedLine)) {
-                if (listType !== 'ol') {
-                    flushList();
-                    listType = 'ol';
-                }
-                const itemText = trimmedLine.replace(/^\d+\.\s/, '');
-                listItems.push(`<li>${formatInlineMarkdown(itemText)}</li>`);
-            }
-            // Baris yang hanya “---” → garis pemisah
-            else if (trimmedLine === '---') {
-                flushList();
-                htmlSegment += '<hr style="border: 1px solid var(--border-light); margin: 1.5rem 0;">';
-            }
-            // Paragraf biasa
-            else {
-                flushList();
-                // Ganti semua “---” dengan tanda pisah (—)
-                let p = trimmedLine.replace(/---/g, '—');
-                // Terapkan format inline (bold, italic) setelah bersih dari daftar
-                p = formatInlineMarkdown(p);
-                htmlSegment += `<p>${p}</p>`;
-            }
-        }
-        flushList(); // Kosongkan sisa
-        htmlAccumulator += htmlSegment;
-        buffer = '';
-    }
-
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const trimmedLine = line.trim();
-
-        // Heading
-        if (!inTable && trimmedLine.startsWith('## ')) {
-            flushBuffer();
-            htmlAccumulator += `<h2>${escapeHtml(trimmedLine.slice(3))}</h2>`;
-            continue;
-        }
-        if (!inTable && trimmedLine.startsWith('### ')) {
-            flushBuffer();
-            htmlAccumulator += `<h3>${escapeHtml(trimmedLine.slice(4))}</h3>`;
-            continue;
-        }
-
-        // Deteksi #tab
-        if (!inTable && trimmedLine === '#tab') {
-            flushBuffer();
-            inTable = true;
-            tableBuffer = '';
-            continue;
-        }
-
-        // Dalam mode tabel
-        if (inTable) {
-            if (trimmedLine === '') {
-                let nextNonEmpty = '';
-                for (let j = i + 1; j < lines.length; j++) {
-                    if (lines[j].trim() !== '') {
-                        nextNonEmpty = lines[j].trim();
-                        break;
-                    }
-                }
-                if (nextNonEmpty.startsWith('## ') || nextNonEmpty.startsWith('### ') || nextNonEmpty === '#tab') {
-                    if (tableBuffer.trim()) {
-                        htmlAccumulator += parseMarkdownTableToTabWidget(tableBuffer.trim());
-                    }
-                    inTable = false;
-                    tableJustEnded = true;
-                    continue;
-                }
-            }
-            
-            tableBuffer += line + '\n';
-            continue;
-        }
-
-        // Di luar tabel
-        if (tableJustEnded && trimmedLine === '') {
-            tableJustEnded = false;
-            continue;
-        }
-        tableJustEnded = false;
-
-        if (trimmedLine === '') {
-            flushBuffer();
-        } else {
-            if (buffer) buffer += '\n';
-            buffer += line;
-        }
-    }
-
-    if (inTable && tableBuffer.trim()) {
-        htmlAccumulator += parseMarkdownTableToTabWidget(tableBuffer.trim());
-    } else if (!inTable) {
-        flushBuffer();
-    }
-
-    return `<div class="content-card">${htmlAccumulator}</div>`;
-}
-
-function renderKesimpulan() {
-    const data = closingData.kesimpulan;
-    if (!data) return '<div class="content-card"><p>Konten tidak tersedia.</p></div>';
-
-    let html = `<div class="content-card"><h1>✨ ${escapeHtml(data.judul)}</h1>`;
-    
-    for (const item of data.konten) {
-        if (item.jenis === 'paragraf') {
-            html += `<p>${escapeHtml(item.teks)}</p>`;
-        } else if (item.jenis === 'kutipan') {
-            html += `<blockquote style="
-                border-left: 4px solid var(--accent-primary);
-                padding: 1.2rem 0 1.2rem 1.5rem;
-                margin: 1.5rem 0;
-                background: var(--accent-very-light);
-                border-radius: 8px;
-                font-style: italic;
-                color: var(--text-secondary);
-            "><strong>❝</strong> ${escapeHtml(item.teks)} <strong>❞</strong></blockquote>`;
-        }
-    }
-
-    if (data.pesan_penutup) {
-        html += `<p style="margin-top: 2rem; font-weight: 600; color: var(--accent-primary);">✓ ${escapeHtml(data.pesan_penutup)}</p>`;
-    }
-
-    html += `</div>`;
-    return html;
-}
-
-function renderPage(pageId) {
-    const pageDiv = document.getElementById(pageId);
-    if (!pageDiv) return;
-
-    let content = '';
-    if (pageId === 'pendahuluan') {
-        content = renderPendahuluan();
-    } else if (pageId === 'kesimpulan') {
-        content = renderKesimpulan();
-    } else if (babData && babData[pageId]) {
-        content = renderBab(pageId);
-    } else {
-        content = '<div class="content-card"><p>Konten sedang disiapkan.</p></div>';
-    }
-
-    pageDiv.innerHTML = content;
-    attachTabEvents(pageDiv);
-    attachNavigation(pageId);
-}
-
-function attachTabEvents(container) {
-    container.querySelectorAll('.tab-widget').forEach(widget => {
-        const btns = widget.querySelectorAll('.tab-btn');
-        const panes = widget.querySelectorAll('.tab-pane');
-
-        btns.forEach(btn => {
-            btn.removeEventListener('click', handleTabClick);
-            btn.addEventListener('click', handleTabClick);
-        });
-
-        function handleTabClick(e) {
-            const btn = e.currentTarget;
-            const idx = btn.getAttribute('data-tab-idx');
-            const parentWidget = btn.closest('.tab-widget');
-
-            parentWidget.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            parentWidget.querySelectorAll('.tab-pane').forEach(pane => {
-                pane.classList.remove('active-pane');
-                if (pane.getAttribute('data-pane-idx') === idx) {
-                    pane.classList.add('active-pane');
-                }
-            });
-        }
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsText(file);
     });
 }
 
-function attachNavigation(currentId) {
-    const pageDiv = document.getElementById(currentId);
-    let existingNav = pageDiv.querySelector('.custom-nav-container');
-    if (existingNav) existingNav.remove();
-
-    const index = chapters.findIndex(ch => ch.id === currentId);
-    if (index === -1) return;
-
-    const navDiv = document.createElement('div');
-    navDiv.className = 'next-section custom-nav-container';
-
-    if (index > 0) {
-        const prevBtn = document.createElement('button');
-        prevBtn.textContent = '← Sebelumnya';
-        prevBtn.className = 'nav-btn';
-        prevBtn.onclick = () => navigateTo(chapters[index - 1].id);
-        navDiv.appendChild(prevBtn);
+// ==================== PLAYLIST MANAGEMENT ====================
+function renderPlaylistUI() {
+    playlistContainer.innerHTML = '';
+    if (playlist.length === 0) {
+        playlistContainer.innerHTML = '<p class="empty-text">Belum ada lagu</p>';
+        return;
     }
-
-    if (index < chapters.length - 1) {
-        const nextBtn = document.createElement('button');
-        nextBtn.textContent = `Lanjut → ${chapters[index + 1].title}`;
-        nextBtn.className = 'nav-btn';
-        nextBtn.onclick = () => navigateTo(chapters[index + 1].id);
-        navDiv.appendChild(nextBtn);
-    }
-
-    pageDiv.appendChild(navDiv);
-}
-
-// ======================== NAVIGATION & UI ========================
-
-function navigateTo(pageId, pushState = true) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    
-    const targetPage = document.getElementById(pageId);
-    if (targetPage) {
-        targetPage.classList.add('active');
-        
-        if (!targetPage.innerHTML.trim() || targetPage.innerHTML.includes('Konten sedang disiapkan')) {
-            renderPage(pageId);
-        }
-
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        
-        if (pushState) {
-            history.pushState({ page: pageId }, '', `#${pageId === 'homePage' ? '' : pageId}`);
-        }
-        
-        currentPageId = pageId;
-    }
-
-    closeSidebar();
-    updateMenuVisibility(pageId !== 'homePage');
-}
-
-function updateMenuVisibility(show) {
-    const menuBtn = document.getElementById('menuToggleBtn');
-    if (menuBtn) {
-        menuBtn.style.display = show ? 'flex' : 'none';
-    }
-}
-
-// ======================== THEME HANDLING ========================
-
-function applyTheme() {
-    if (darkMode) {
-        document.body.classList.add('dark');
-    } else {
-        document.body.classList.remove('dark');
-    }
-    localStorage.setItem('theme', darkMode ? 'dark' : 'light');
-    
-    const themeIcon = document.getElementById('themeToggle');
-    if (themeIcon) {
-        themeIcon.textContent = darkMode ? '☀️' : '🌙';
-    }
-}
-
-function toggleTheme() {
-    darkMode = !darkMode;
-    applyTheme();
-    initBars();
-}
-
-// ======================== SIDEBAR MANAGEMENT ========================
-
-function openSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    const menuBtn = document.querySelector('.menu-btn');
-
-    if (sidebar) sidebar.classList.add('open');
-    if (overlay) overlay.classList.add('show');
-    if (menuBtn) menuBtn.classList.add('morph-active');
-}
-
-function closeSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    const menuBtn = document.querySelector('.menu-btn');
-
-    if (sidebar) sidebar.classList.remove('open');
-    if (overlay) overlay.classList.remove('show');
-    if (menuBtn) menuBtn.classList.remove('morph-active');
-}
-
-function buildSidebar() {
-    const ul = document.getElementById('chapterSidebarList');
-    if (!ul) return;
-
-    ul.innerHTML = '';
-    chapters.forEach((ch, idx) => {
-        const li = document.createElement('li');
-        li.style.setProperty('--index', idx);
-        
-        const a = document.createElement('a');
-        a.href = `#${ch.id === 'homePage' ? '' : ch.id}`;
-        a.textContent = ch.title;
-        a.addEventListener('click', (e) => {
-            e.preventDefault();
-            navigateTo(ch.id);
+    playlist.forEach((song, idx) => {
+        const div = document.createElement('div');
+        div.className = `song-item ${idx === currentIndex ? 'active' : ''}`;
+        div.innerHTML = `<span>🎵 ${song.title}</span> <span class="delete-song" data-idx="${idx}">❌</span>`;
+        div.addEventListener('click', (e) => {
+            // Hindari klik pada tombol hapus
+            if (e.target.classList.contains('delete-song')) return;
+            loadSong(idx);
+            closeSidebar();
         });
-
-        li.appendChild(a);
-        ul.appendChild(li);
-    });
-}
-
-// ======================== BACKGROUND CANVAS ANIMATION ========================
-
-const canvas = document.getElementById('bgCanvas');
-let ctx = canvas ? canvas.getContext('2d') : null;
-let bars = [];
-
-function resizeCanvas() {
-    if (!canvas) return;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    initBars();
-}
-
-function initBars() {
-    if (!canvas) return;
-    bars = [];
-    let count = Math.max(15, Math.floor(canvas.width / 60));
-    
-    for (let i = 0; i < count; i++) {
-        const colors = [
-            'rgba(44, 110, 73, 0.6)',
-            'rgba(212, 175, 55, 0.5)',
-            'rgba(76, 154, 111, 0.5)'
-        ];
-        
-        bars.push({
-            x: i * (canvas.width / count),
-            height: Math.random() * canvas.height * 0.5 + 40,
-            color: colors[Math.floor(Math.random() * colors.length)],
-            speed: Math.random() * 2 + 0.5
-        });
-    }
-}
-
-function drawBars() {
-    if (!ctx || !canvas) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.globalAlpha = 0.3;
-
-    bars.forEach(b => {
-        ctx.fillStyle = b.color;
-        const barWidth = Math.floor(canvas.width / bars.length) - 8;
-        ctx.fillRect(b.x, canvas.height - b.height, barWidth, b.height);
-
-        b.height += (Math.random() - 0.5) * b.speed;
-        if (b.height > canvas.height * 0.6) b.height = canvas.height * 0.2;
-        if (b.height < 25) b.height = 35;
+        playlistContainer.appendChild(div);
     });
 
-    ctx.globalAlpha = 1;
-    requestAnimationFrame(drawBars);
-}
-
-// ======================== APP INITIALIZATION ========================
-
-function initApp() {
-    applyTheme();
-    buildSidebar();
-
-    chapters.forEach(ch => renderPage(ch.id));
-    renderPage('kesimpulan');
-
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const homePage = document.getElementById('homePage');
-    if (homePage) homePage.classList.add('active');
-    currentPageId = 'homePage';
-    updateMenuVisibility(false);
-
-    const startBtn = document.getElementById('startBtn');
-    if (startBtn) {
-        startBtn.addEventListener('click', () => navigateTo('pendahuluan'));
-    }
-
-    const themeToggle = document.getElementById('themeToggle');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', toggleTheme);
-    }
-
-    const menuToggleBtn = document.getElementById('menuToggleBtn');
-    if (menuToggleBtn) {
-        menuToggleBtn.addEventListener('click', (e) => {
+    // Event listener untuk tombol hapus
+    document.querySelectorAll('.delete-song').forEach(btn => {
+        btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar.classList.contains('open')) {
-                closeSidebar();
-            } else {
-                openSidebar();
-            }
+            const idx = parseInt(btn.dataset.idx);
+            deleteSong(idx);
         });
-    }
-
-    const overlay = document.getElementById('sidebarOverlay');
-    if (overlay) {
-        overlay.addEventListener('click', closeSidebar);
-    }
-
-    window.addEventListener('popstate', (e) => {
-        let hash = window.location.hash.slice(1);
-        if (hash && document.getElementById(hash)) {
-            navigateTo(hash, false);
-        } else {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            const home = document.getElementById('homePage');
-            if (home) home.classList.add('active');
-            updateMenuVisibility(false);
-            currentPageId = 'homePage';
-        }
     });
-
-    if (window.location.hash) {
-        let hash = window.location.hash.slice(1);
-        if (document.getElementById(hash)) {
-            navigateTo(hash, false);
-        }
-    }
-
-    resizeCanvas();
-    drawBars();
-    window.addEventListener('resize', () => { resizeCanvas(); });
 }
 
-loadAllData();
+function deleteSong(idx) {
+    if (playlist[idx] && playlist[idx].audioBlobURL) {
+        URL.revokeObjectURL(playlist[idx].audioBlobURL);
+    }
+    playlist.splice(idx, 1);
+    if (currentIndex === idx) {
+        stopPlayback();
+        currentIndex = -1;
+        nowPlayingEl.textContent = '🎤 Pilih atau tambah lagu';
+        lyricsGrid.innerHTML = '<p class="empty-text" style="grid-column:1/-1;">Lirik akan muncul di sini</p>';
+    } else if (currentIndex > idx) {
+        currentIndex--;
+    }
+    renderPlaylistUI();
+}
+
+function stopPlayback() {
+    audio.pause();
+    audio.src = '';
+    lyricsData = [];
+}
+
+// ==================== LOAD SONG ====================
+async function loadSong(index) {
+    if (index < 0 || index >= playlist.length) return;
+    currentIndex = index;
+    const song = playlist[index];
+
+    nowPlayingEl.textContent = `${song.title}`;
+    audio.src = song.audioBlobURL;
+    audio.load();
+
+    // Reset lyrics
+    lyricsData = song.lyricColumns.map(col => ({
+        label: col.label,
+        lyrics: col.parsed
+    }));
+    renderLyrics();
+    renderPlaylistUI();
+
+    try { await audio.play(); } catch(e) {}
+}
+
+function renderLyrics() {
+    lyricsGrid.innerHTML = '';
+    if (!lyricsData.length) {
+        lyricsGrid.innerHTML = '<p class="empty-text" style="grid-column:1/-1;">Pilih lagu</p>';
+        return;
+    }
+    lyricsData.forEach((track, idx) => {
+        const panel = document.createElement('div');
+        panel.className = 'lyric-panel';
+        panel.innerHTML = `<h3>📜 ${track.label}</h3>`;
+        const list = document.createElement('div');
+        track.lyrics.forEach((line, lineIdx) => {
+            const p = document.createElement('p');
+            p.className = 'lyric-line';
+            p.textContent = line.text;
+            p.dataset.time = line.time;
+            p.addEventListener('click', () => {
+                audio.currentTime = line.time;
+                if (audio.paused) audio.play().catch(()=>{});
+            });
+            list.appendChild(p);
+        });
+        panel.appendChild(list);
+        lyricsGrid.appendChild(panel);
+    });
+}
+
+function updateActiveLyric() {
+    const ct = audio.currentTime;
+    lyricsData.forEach((track, trackIdx) => {
+        const panel = lyricsGrid.children[trackIdx];
+        if (!panel) return;
+        const lines = panel.querySelectorAll('.lyric-line');
+        let active = -1;
+        for (let i = track.lyrics.length-1; i >= 0; i--) {
+            if (ct >= track.lyrics[i].time) { active = i; break; }
+        }
+        lines.forEach((line, i) => line.classList.toggle('active', i === active));
+        if (active !== -1 && lines[active]) {
+            lines[active].scrollIntoView({ behavior:'smooth', block:'center' });
+        }
+    });
+}
+
+// ==================== PLAYER CONTROLS ====================
+function togglePlay() {
+    if (!audio.src) return;
+    if (audio.paused) audio.play().catch(()=>{});
+    else audio.pause();
+}
+function updatePlayIcon() {
+    playBtn.textContent = audio.paused ? '▶️' : '⏸️';
+}
+
+audio.addEventListener('timeupdate', () => {
+    const dur = audio.duration || 1;
+    const pct = (audio.currentTime / dur) * 100;
+    progressFill.style.width = `${pct}%`;
+    seekSlider.value = pct;
+    currentTimeEl.textContent = formatTime(audio.currentTime);
+    durationEl.textContent = formatTime(audio.duration);
+    updateActiveLyric();
+});
+audio.addEventListener('loadedmetadata', () => {
+    durationEl.textContent = formatTime(audio.duration);
+});
+audio.addEventListener('play', updatePlayIcon);
+audio.addEventListener('pause', updatePlayIcon);
+audio.addEventListener('ended', () => {
+    const next = (currentIndex + 1) % playlist.length;
+    if (playlist.length) loadSong(next);
+});
+
+seekSlider.addEventListener('input', () => {
+    const dur = audio.duration || 0;
+    audio.currentTime = (seekSlider.value / 100) * dur;
+});
+volumeSlider.addEventListener('input', () => audio.volume = volumeSlider.value);
+
+playBtn.addEventListener('click', togglePlay);
+prevBtn.addEventListener('click', () => {
+    if (!playlist.length) return;
+    const prev = (currentIndex - 1 + playlist.length) % playlist.length;
+    loadSong(prev);
+});
+nextBtn.addEventListener('click', () => {
+    if (!playlist.length) return;
+    const next = (currentIndex + 1) % playlist.length;
+    loadSong(next);
+});
+
+// ==================== SIDEBAR ====================
+function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('show'); menuBtn.classList.add('morph-active'); }
+function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('show'); menuBtn.classList.remove('morph-active'); }
+menuBtn.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+overlay.addEventListener('click', closeSidebar);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
+
+// ==================== ADD SONG MODAL ====================
+let lyricColumnCount = 2; // minimal 2
+
+function createLyricColumn(index) {
+    const div = document.createElement('div');
+    div.className = 'lyric-column';
+    div.innerHTML = `
+        <input type="text" placeholder="Label (misal: Romaji)" class="col-label" value="Kolom ${index+1}">
+        <input type="file" accept=".lrc,.txt" class="col-file" required>
+    `;
+    return div;
+}
+
+function rebuildLyricInputs() {
+    lyricInputsContainer.innerHTML = '';
+    for (let i = 0; i < lyricColumnCount; i++) {
+        lyricInputsContainer.appendChild(createLyricColumn(i));
+    }
+    removeLyricColumnBtn.disabled = lyricColumnCount <= 2;
+}
+
+addLyricColumnBtn.addEventListener('click', () => {
+    if (lyricColumnCount >= 3) return;
+    lyricColumnCount++;
+    rebuildLyricInputs();
+});
+
+removeLyricColumnBtn.addEventListener('click', () => {
+    if (lyricColumnCount <= 2) return;
+    lyricColumnCount--;
+    rebuildLyricInputs();
+});
+
+function openModal() {
+    audioFileInput.value = '';
+    lyricColumnCount = 2;
+    rebuildLyricInputs();
+    modal.classList.add('active');
+}
+function closeModal() { modal.classList.remove('active'); }
+
+addSongBtn.addEventListener('click', openModal);
+cancelAddBtn.addEventListener('click', closeModal);
+
+saveSongBtn.addEventListener('click', async () => {
+    const audioFile = audioFileInput.files[0];
+    if (!audioFile) return alert('Pilih file audio terlebih dahulu');
+
+    const lyricColumns = [];
+    const columnDivs = document.querySelectorAll('.lyric-column');
+    for (const col of columnDivs) {
+        const labelInput = col.querySelector('.col-label');
+        const fileInput = col.querySelector('.col-file');
+        if (!fileInput.files.length) return alert('Semua kolom lirik harus diisi');
+        const text = await readFileAsText(fileInput.files[0]);
+        const parsed = parseLRC(text);
+        lyricColumns.push({ label: labelInput.value || 'Lirik', parsed });
+    }
+
+    const audioBlobURL = URL.createObjectURL(audioFile);
+    const title = audioFile.name.replace(/\.[^/.]+$/, "");
+
+    playlist.push({
+        id: Date.now(),
+        title,
+        audioBlobURL,
+        lyricColumns
+    });
+
+    renderPlaylistUI();
+    closeModal();
+    // Jika ini lagu pertama, langsung putar
+    if (playlist.length === 1) loadSong(0);
+});
+
+// ==================== THEME ====================
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('lirik-player-theme', theme);
+    document.querySelector('.theme-icon').textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+themeToggle.addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    setTheme(cur === 'dark' ? 'light' : 'dark');
+});
+
+// ==================== INIT ====================
+function init() {
+    const saved = localStorage.getItem('lirik-player-theme') || 'dark';
+    setTheme(saved);
+    volumeSlider.value = 0.7;
+    audio.volume = 0.7;
+    updatePlayIcon();
+    renderPlaylistUI();
+    // Kosongkan lyrics
+    lyricsGrid.innerHTML = '<p class="empty-text" style="grid-column:1/-1;">Tambah lagu untuk memulai</p>';
+}
+init();
