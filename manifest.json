@@ -1,0 +1,19 @@
+{
+  "name": "Kategorisasi Data CSV",
+  "short_name": "Kategorisasi",
+  "description": "Buat kategori, unggah CSV, dan kategorikan tiap baris data dengan cepat.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#fafafa",
+  "theme_color": "#fafafa",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
